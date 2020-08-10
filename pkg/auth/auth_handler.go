@@ -51,6 +51,8 @@ func NewAuthHandler(cfg Config, log logrus.FieldLogger) *AuthHandler {
 		err := a.populateKeyMap()
 		if err != nil {
 			log.Fatalln("Failed to init auth handler,", err)
+		} else {
+			a.log.Info("API Key Authentication Disabled")
 		}
 	}
 	return a
@@ -176,7 +178,7 @@ func (a *AuthHandler) CreateAuthenticator() func(name, in string, authenticate s
 		return security.HttpAuthenticator(func(r *http.Request) (bool, interface{}, error) {
 
 			if !a.EnableAuth {
-				a.log.Info("API Key Authentication Disabled")
+				a.log.Debugf("Auth Disabled, allowing request: %v", *r)
 				return true, "", nil
 			}
 			token := getToken(r)
