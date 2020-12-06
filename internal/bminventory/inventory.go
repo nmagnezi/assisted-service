@@ -260,17 +260,50 @@ type bareMetalInventory struct {
 
 func (b *bareMetalInventory) UpdateClusterInstallProgress(ctx context.Context, params installer.UpdateClusterInstallProgressParams) middleware.Responder {
 	log := logutil.FromContext(ctx, b.log)
+	var c common.Cluster
 
-	if err := b.clusterApi.UpdateInstallProgress(ctx, params.ClusterID, params.ClusterProgress, b.db); err != nil {
-		log.WithError(err).Errorf("failed to update cluster %s progress", params.ClusterID)
-		return installer.NewUpdateClusterInstallProgressInternalServerError().WithPayload(
-			common.GenerateError(http.StatusInternalServerError, err))
+	txSuccess := false
+
+	tx := b.db.Begin()
+	tx = transaction.AddForUpdateQueryOption(tx)
+
+	defer func() {
+		if !txSuccess {
+			log.Error("cluster installation progress update failed")
+			tx.Rollback()
+		}
+		if r := recover(); r != nil {
+			log.Error("cluster installation progress update failed")
+			tx.Rollback()
+		}
+	}()
+
+	if tx.Error != nil {
+		log.WithError(tx.Error).Errorf("failed to start db transaction")
+		return installer.NewResetClusterInternalServerError().WithPayload(
+			common.GenerateError(http.StatusInternalServerError, errors.New("DB error, failed to start transaction")))
 	}
 
-	event := fmt.Sprintf("Updated installation progress to: %s", params.ClusterProgress)
-	log.Infof("Cluster %s: %s", params.ClusterID, event)
+	if err := tx.Preload("Hosts").First(&c, "id = ?", params.ClusterID).Error; err != nil {
+		log.WithError(err).Errorf("failed to find cluster %s", params.ClusterID)
+		if gorm.IsRecordNotFoundError(err) {
+			return installer.NewResetClusterNotFound().WithPayload(common.GenerateError(http.StatusNotFound, err))
+		}
+		return installer.NewResetClusterInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
+	}
 
-	b.eventsHandler.AddEvent(ctx, params.ClusterID, nil, models.EventSeverityInfo, event, time.Now())
+	if err := b.clusterApi.UpdateInstallProgress(ctx, &c, params.ClusterProgress, tx); err != nil {
+		return common.GenerateErrorResponder(err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		log.Error(err)
+		return installer.NewUpdateClusterInstallProgressInternalServerError().WithPayload(
+			common.GenerateError(http.StatusInternalServerError, errors.New("DB error, failed to commit transaction")))
+	}
+
+	txSuccess = true
+
 	return installer.NewUpdateClusterInstallProgressNoContent()
 }
 

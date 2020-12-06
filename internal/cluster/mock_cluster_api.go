@@ -6,13 +6,12 @@ package cluster
 
 import (
 	context "context"
-	reflect "reflect"
-
 	strfmt "github.com/go-openapi/strfmt"
 	gomock "github.com/golang/mock/gomock"
 	gorm "github.com/jinzhu/gorm"
 	common "github.com/openshift/assisted-service/internal/common"
 	s3wrapper "github.com/openshift/assisted-service/pkg/s3wrapper"
+	reflect "reflect"
 )
 
 // MockRegistrationAPI is a mock of RegistrationAPI interface
@@ -520,15 +519,15 @@ func (mr *MockAPIMockRecorder) PermanentClustersDeletion(ctx, olderThen, objectH
 }
 
 // UpdateInstallProgress mocks base method
-func (m *MockAPI) UpdateInstallProgress(ctx context.Context, clusterID strfmt.UUID, progress string, db *gorm.DB) error {
+func (m *MockAPI) UpdateInstallProgress(ctx context.Context, c *common.Cluster, progress string, db *gorm.DB) *common.ApiErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateInstallProgress", ctx, clusterID, progress, db)
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "UpdateInstallProgress", ctx, c, progress, db)
+	ret0, _ := ret[0].(*common.ApiErrorResponse)
 	return ret0
 }
 
 // UpdateInstallProgress indicates an expected call of UpdateInstallProgress
-func (mr *MockAPIMockRecorder) UpdateInstallProgress(ctx, clusterID, progress, db interface{}) *gomock.Call {
+func (mr *MockAPIMockRecorder) UpdateInstallProgress(ctx, c, progress, db interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInstallProgress", reflect.TypeOf((*MockAPI)(nil).UpdateInstallProgress), ctx, clusterID, progress, db)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInstallProgress", reflect.TypeOf((*MockAPI)(nil).UpdateInstallProgress), ctx, c, progress, db)
 }

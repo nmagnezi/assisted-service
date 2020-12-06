@@ -66,8 +66,8 @@ func updateClusterStatus(log logrus.FieldLogger, db *gorm.DB, clusterId strfmt.U
 	return cluster, nil
 }
 
-func updateClusterProgress(log logrus.FieldLogger, db *gorm.DB, clusterId strfmt.UUID, progress string,
-	extra ...interface{}) (*common.Cluster, error) {
+func updateClusterProgress(log logrus.FieldLogger, db *gorm.DB, clusterId strfmt.UUID, srcStatus string,
+	progress string, extra ...interface{}) (*common.Cluster, error) {
 	var cluster *common.Cluster
 	var err error
 
@@ -76,7 +76,7 @@ func updateClusterProgress(log logrus.FieldLogger, db *gorm.DB, clusterId strfmt
 	now := strfmt.DateTime(time.Now())
 	extra = append(extra, "progress_progress_updated_at", now)
 
-	if cluster, err = UpdateCluster(log, db, clusterId, models.ClusterStatusInstalling, extra...); err != nil {
+	if cluster, err = UpdateCluster(log, db, clusterId, srcStatus, extra...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update cluster %s installation progress with %s",
 			clusterId, progress)
 	}

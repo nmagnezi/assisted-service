@@ -107,6 +107,30 @@ func (th *transitionHandler) PostPrepareForInstallation(sw stateswitch.StateSwit
 }
 
 ////////////////////////////////////////////////////////////////////////////
+// Update installation progress
+////////////////////////////////////////////////////////////////////////////
+
+type TransitionArgsUpdateInstallationProgress struct {
+	ctx      context.Context
+	progress string
+	db       *gorm.DB
+}
+
+func (th *transitionHandler) PostUpdateInstallationProgress(sw stateswitch.StateSwitch, args stateswitch.TransitionArgs) error {
+	sCluster, ok := sw.(*stateCluster)
+
+	if !ok {
+		return errors.New("PostUpdateInstallationProgress incompatible type of StateSwitch")
+	}
+	params, ok := args.(*TransitionArgsUpdateInstallationProgress)
+	if !ok {
+		return errors.New("PostUpdateInstallationProgress invalid argument")
+	}
+
+	return th.updateClusterInstallProgress(logutil.FromContext(params.ctx, th.log), params.db, sCluster, params.progress)
+}
+
+////////////////////////////////////////////////////////////////////////////
 // Complete installation
 ////////////////////////////////////////////////////////////////////////////
 
@@ -160,6 +184,17 @@ func (th *transitionHandler) updateTransitionCluster(log logrus.FieldLogger, db 
 
 	if cluster, err := updateClusterStatus(log, db, *state.cluster.ID, state.srcState,
 		swag.StringValue(state.cluster.Status), statusInfo, extra...); err != nil {
+		return err
+	} else {
+		state.cluster = cluster
+		return nil
+	}
+}
+
+func (th *transitionHandler) updateClusterInstallProgress(log logrus.FieldLogger, db *gorm.DB, state *stateCluster,
+	progress string, extra ...interface{}) error {
+	if cluster, err := updateClusterProgress(log, db, *state.cluster.ID, swag.StringValue(state.cluster.Status),
+		progress, extra...); err != nil {
 		return err
 	} else {
 		state.cluster = cluster
