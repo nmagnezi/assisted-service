@@ -823,3 +823,64 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.0
+  creationTimestamp: null
+  name: nmstateconfigs.adi.io.my.domain
+spec:
+  group: adi.io.my.domain
+  names:
+    kind: NMStateConfig
+    listKind: NMStateConfigList
+    plural: nmstateconfigs
+    singular: nmstateconfig
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              macInterfaceMap:
+                description: mapping of host macs to logical interfaces used in the network yaml
+                items:
+                  properties:
+                    logicalNICName:
+                      description: nic name used in the yaml, which relates 1:1 to the mac address
+                      type: string
+                    macAddress:
+                      description: 'mac address present on the host. Pattern: ^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+                      type: string
+                  required:
+                  - logicalNICName
+                  - macAddress
+                  type: object
+                type: array
+              networkYAML:
+                description: yaml string that can be processed by nmstate
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

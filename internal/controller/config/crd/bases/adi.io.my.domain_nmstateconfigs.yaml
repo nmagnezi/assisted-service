@@ -34,13 +34,26 @@ spec:
             type: object
           spec:
             properties:
-              macAddress:
-                description: MACAddress is a MAC address for any network device on
-                  the host to which this config should be applied. This value is only
-                  used to ensure that the config is applied to the intended host.
+              macInterfaceMap:
+                description: mapping of host macs to logical interfaces used in the
+                  network yaml
+                items:
+                  properties:
+                    logicalNICName:
+                      description: nic name used in the yaml, which relates 1:1 to
+                        the mac address
+                      type: string
+                    macAddress:
+                      description: 'mac address present on the host. Pattern: ^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+                      type: string
+                  required:
+                  - logicalNICName
+                  - macAddress
+                  type: object
+                type: array
+              networkYAML:
+                description: yaml string that can be processed by nmstate
                 type: string
-            required:
-            - macAddress
             type: object
         type: object
     served: true

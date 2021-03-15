@@ -57,6 +57,14 @@ rules:
   - patch
   - update
 - apiGroups:
+  - adi.io.my.domain
+  resources:
+  - nmstateconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - hive.openshift.io
   resources:
   - clusterdeployments

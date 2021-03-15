@@ -20,19 +20,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type RawConfig []byte
+type MacInterfaceMapItems struct {
+	// nic name used in the yaml, which relates 1:1 to the mac address
+	LogicalNicName string `json:"logicalNICName"`
+	// mac address present on the host.
+	// Pattern: ^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$
+	MacAddress string `json:"macAddress"`
+}
 
 type NMStateConfigSpec struct {
-	// MACAddress is a MAC address for any network device on the host to which this config
-	// should be applied. This value is only used to ensure that the config is applied to the
-	// intended host.
-	MACAddress string `json:"macAddress"`
-
-	//Config contains the  yaml [1] as string instead of golang struct so we don't need to be in
-	//sync with the schema.
-	//
-	// [1] https://github.com/nmstate/nmstate/blob/base/libnmstate/schemas/operational-state.yaml
-	Config RawConfig `json:"-"`
+	// mapping of host macs to logical interfaces used in the network yaml
+	MacInterfaceMap []*MacInterfaceMapItems `json:"macInterfaceMap,omitempty"`
+	// yaml string that can be processed by nmstate
+	NetworkYaml string `json:"networkYAML,omitempty"`
 }
 
 // +kubebuilder:object:root=true
