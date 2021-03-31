@@ -12,11 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	// SelectorNMStateConfigNameLabel is the label that is used to identify a relationship to a given selector nmstate config object.
-	SelectorNMStateConfigNameLabel = adiiov1alpha1.Group + "/selector-nmstate-config-name"
-)
-
 func getPullSecret(ctx context.Context, c client.Client, name, namespace string) (string, error) {
 	secret := &corev1.Secret{}
 	key := types.NamespacedName{
@@ -48,15 +43,4 @@ func getInstallEnvByClusterDeployment(ctx context.Context, c client.Client, clus
 	}
 	logrus.Infof("no installEnv for the clusterDeployment %s", clusterDeployment.Name)
 	return nil, nil
-}
-
-func getNMStateConfigsByLabelValue(ctx context.Context, c client.Client, namespace string, NMStateLabelValue string) (*adiiov1alpha1.NMStateConfigList, error) {
-	nmStateConfigs := &adiiov1alpha1.NMStateConfigList{}
-	if err := c.List(
-		ctx, nmStateConfigs, client.InNamespace(namespace),
-		client.MatchingLabels(map[string]string{SelectorNMStateConfigNameLabel: NMStateLabelValue}),
-	); err != nil {
-		return nmStateConfigs, err
-	}
-	return nmStateConfigs, nil
 }

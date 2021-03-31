@@ -3,7 +3,7 @@ kind: NMStateConfig
 metadata:
   name: mynmstateconfig
   labels:
-    adi.io.my.domain/selector-nmstate-config-name: abcd
+    some-user-defined-label-name: some-user-defined-label-value
 spec:
   networkYAML: |-
     interfaces:

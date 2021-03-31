@@ -13,7 +13,6 @@ import (
 	"github.com/openshift/assisted-service/client/installer"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/controller/api/v1alpha1"
-	"github.com/openshift/assisted-service/internal/controller/controllers"
 	"github.com/openshift/assisted-service/internal/gencrypto"
 	"github.com/openshift/assisted-service/models"
 	"github.com/openshift/assisted-service/pkg/auth"
@@ -96,7 +95,7 @@ func deployInstallEnvCRD(ctx context.Context, client k8sclient.Client, name stri
 	Expect(err).To(BeNil())
 }
 
-func deployNMStateConfigCRD(ctx context.Context, client k8sclient.Client, name string, NMStateLabelValue string, spec *v1alpha1.NMStateConfigSpec) {
+func deployNMStateConfigCRD(ctx context.Context, client k8sclient.Client, name string, NMStateLabelName string, NMStateLabelValue string, spec *v1alpha1.NMStateConfigSpec) {
 	err := client.Create(ctx, &v1alpha1.NMStateConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NMStateConfig",
@@ -105,7 +104,7 @@ func deployNMStateConfigCRD(ctx context.Context, client k8sclient.Client, name s
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: Options.Namespace,
 			Name:      name,
-			Labels:    map[string]string{controllers.SelectorNMStateConfigNameLabel: NMStateLabelValue},
+			Labels:    map[string]string{NMStateLabelName: NMStateLabelValue},
 		},
 		Spec: *spec,
 	})
@@ -529,6 +528,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 
 	It("deploy clusterDeployment and installEnv and with NMState config", func() {
 		var (
+			NMStateLabelName  = "someName"
 			NMStateLabelValue = "someValue"
 			nicPrimary        = "eth0"
 			nicSecondary      = "eth1"
@@ -545,7 +545,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 				{MacAddress: macSecondary, LogicalNicName: nicSecondary},
 			})
 		nmstateConfigSpec := getDefaultNMStateConfigSpec(nicPrimary, nicSecondary, macPrimary, macSecondary, hostStaticNetworkConfig.NetworkYaml)
-		deployNMStateConfigCRD(ctx, kubeClient, "nmstate1", NMStateLabelValue, nmstateConfigSpec)
+		deployNMStateConfigCRD(ctx, kubeClient, "nmstate1", NMStateLabelName, NMStateLabelValue, nmstateConfigSpec)
 		installEnvName := "installenv"
 		secretRef := deployLocalObjectSecretIfNeeded(ctx, kubeClient)
 		clusterDeploymentSpec := getDefaultClusterDeploymentSNOSpec(secretRef)
@@ -562,7 +562,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 			return ""
 		}, "1m", "2s").Should(Equal(models.ClusterStatusInsufficient))
 		installEnvSpec := getDefaultInstallEnvSpec(secretRef, clusterDeploymentSpec)
-		installEnvSpec.NMStateConfigLabelSelector = metav1.LabelSelector{MatchLabels: map[string]string{controllers.SelectorNMStateConfigNameLabel: NMStateLabelValue}}
+		installEnvSpec.NMStateConfigLabelSelector = metav1.LabelSelector{MatchLabels: map[string]string{NMStateLabelName: NMStateLabelValue}}
 		deployInstallEnvCRD(ctx, kubeClient, installEnvName, installEnvSpec)
 		installEnvKubeName := types.NamespacedName{
 			Namespace: Options.Namespace,
@@ -583,6 +583,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 
 	It("deploy clusterDeployment and installEnv and with an invalid NMState config", func() {
 		var (
+			NMStateLabelName  = "someName"
 			NMStateLabelValue = "someValue"
 			nicPrimary        = "eth0"
 			nicSecondary      = "eth1"
@@ -590,7 +591,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 			macSecondary      = "09:23:0f:d8:92:AB"
 		)
 		nmstateConfigSpec := getDefaultNMStateConfigSpec(nicPrimary, nicSecondary, macPrimary, macSecondary, "invalid config")
-		deployNMStateConfigCRD(ctx, kubeClient, "nmstate2", NMStateLabelValue, nmstateConfigSpec)
+		deployNMStateConfigCRD(ctx, kubeClient, "nmstate2", NMStateLabelName, NMStateLabelValue, nmstateConfigSpec)
 		installEnvName := "installenv"
 		secretRef := deployLocalObjectSecretIfNeeded(ctx, kubeClient)
 		clusterDeploymentSpec := getDefaultClusterDeploymentSNOSpec(secretRef)
@@ -607,7 +608,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 			return ""
 		}, "1m", "2s").Should(Equal(models.ClusterStatusInsufficient))
 		installEnvSpec := getDefaultInstallEnvSpec(secretRef, clusterDeploymentSpec)
-		installEnvSpec.NMStateConfigLabelSelector = metav1.LabelSelector{MatchLabels: map[string]string{controllers.SelectorNMStateConfigNameLabel: NMStateLabelValue}}
+		installEnvSpec.NMStateConfigLabelSelector = metav1.LabelSelector{MatchLabels: map[string]string{NMStateLabelName: NMStateLabelValue}}
 		deployInstallEnvCRD(ctx, kubeClient, installEnvName, installEnvSpec)
 		installEnvKubeName := types.NamespacedName{
 			Namespace: Options.Namespace,

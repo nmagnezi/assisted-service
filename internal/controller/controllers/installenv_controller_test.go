@@ -49,7 +49,7 @@ func newInstallEnvImage(name, namespace string, spec adiiov1alpha1.InstallEnvSpe
 	}
 }
 
-func newNMStateConfig(name, namespace, NMStateLabelValue string, spec adiiov1alpha1.NMStateConfigSpec) *adiiov1alpha1.NMStateConfig {
+func newNMStateConfig(name, namespace, NMStateLabelName, NMStateLabelValue string, spec adiiov1alpha1.NMStateConfigSpec) *adiiov1alpha1.NMStateConfig {
 	return &adiiov1alpha1.NMStateConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NMStateConfig",
@@ -58,7 +58,7 @@ func newNMStateConfig(name, namespace, NMStateLabelValue string, spec adiiov1alp
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels:    map[string]string{SelectorNMStateConfigNameLabel: NMStateLabelValue},
+			Labels:    map[string]string{NMStateLabelName: NMStateLabelValue},
 		},
 		Spec: spec,
 	}
@@ -433,6 +433,7 @@ var _ = Describe("installEnv reconcile", func() {
 	Context("nmstate config", func() {
 
 		var (
+			NMStateLabelName  = "someName"
 			NMStateLabelValue = "someValue"
 			nicPrimary        = "eth0"
 			nicSecondary      = "eth1"
@@ -450,7 +451,7 @@ var _ = Describe("installEnv reconcile", func() {
 			})
 
 		It("create new installEnv image with nmstate config - success", func() {
-			nmstateConfig := newNMStateConfig("NMStateConfig", testNamespace, NMStateLabelValue,
+			nmstateConfig := newNMStateConfig("NMStateConfig", testNamespace, NMStateLabelName, NMStateLabelValue,
 				adiiov1alpha1.NMStateConfigSpec{
 					MacInterfaceMap: []*adiiov1alpha1.MacInterfaceMapItems{
 						{LogicalNicName: nicPrimary, MacAddress: macPrimary},
@@ -470,7 +471,7 @@ var _ = Describe("installEnv reconcile", func() {
 
 				}).Return(&common.Cluster{Cluster: models.Cluster{ImageInfo: &models.ImageInfo{DownloadURL: "downloadurl"}}}, nil).Times(1)
 			installEnvImage := newInstallEnvImage("installEnvImage", testNamespace, adiiov1alpha1.InstallEnvSpec{
-				NMStateConfigLabelSelector: metav1.LabelSelector{MatchLabels: map[string]string{SelectorNMStateConfigNameLabel: NMStateLabelValue}},
+				NMStateConfigLabelSelector: metav1.LabelSelector{MatchLabels: map[string]string{NMStateLabelName: NMStateLabelValue}},
 				ClusterRef:                 &adiiov1alpha1.ClusterReference{Name: "clusterDeployment", Namespace: testNamespace},
 			})
 			Expect(c.Create(ctx, installEnvImage)).To(BeNil())
@@ -490,7 +491,7 @@ var _ = Describe("installEnv reconcile", func() {
 
 		It("create new installEnv image with an invalid nmstate config - fail", func() {
 			hostStaticNetworkConfig.NetworkYaml = "interfaces:\n    - foo: badConfig"
-			nmstateConfig := newNMStateConfig("NMStateConfig", testNamespace, NMStateLabelValue,
+			nmstateConfig := newNMStateConfig("NMStateConfig", testNamespace, NMStateLabelName, NMStateLabelValue,
 				adiiov1alpha1.NMStateConfigSpec{
 					MacInterfaceMap: []*adiiov1alpha1.MacInterfaceMapItems{
 						{LogicalNicName: nicPrimary, MacAddress: macPrimary},
@@ -509,7 +510,7 @@ var _ = Describe("installEnv reconcile", func() {
 					Expect(params.ImageCreateParams.StaticNetworkConfig).To(Equal([]*models.HostStaticNetworkConfig{hostStaticNetworkConfig}))
 				}).Return(nil, expectedError).Times(1)
 			installEnvImage := newInstallEnvImage("installEnvImage", testNamespace, adiiov1alpha1.InstallEnvSpec{
-				NMStateConfigLabelSelector: metav1.LabelSelector{MatchLabels: map[string]string{SelectorNMStateConfigNameLabel: NMStateLabelValue}},
+				NMStateConfigLabelSelector: metav1.LabelSelector{MatchLabels: map[string]string{NMStateLabelName: NMStateLabelValue}},
 				ClusterRef:                 &adiiov1alpha1.ClusterReference{Name: "clusterDeployment", Namespace: testNamespace},
 			})
 			Expect(c.Create(ctx, installEnvImage)).To(BeNil())

@@ -144,36 +144,38 @@ func (r *InstallEnvReconciler) updateClusterDiscoveryIgnitionIfNeeded(ctx contex
 	return nil
 }
 
+func (r *InstallEnvReconciler) buildMacInterfaceMap(nmStateConfig adiiov1alpha1.NMStateConfig) models.MacInterfaceMap {
+	macInterfaceMap := make(models.MacInterfaceMap, 0, len(nmStateConfig.Spec.MacInterfaceMap))
+	for _, cfg := range nmStateConfig.Spec.MacInterfaceMap {
+		r.Log.Debugf("adding MAC interface map to host static network config - LogicalNicName: %s, MacAddress: %s ,",
+			cfg.LogicalNicName, cfg.MacAddress)
+		macInterfaceMap = append(macInterfaceMap, &models.MacInterfaceMapItems0{
+			MacAddress:     cfg.MacAddress,
+			LogicalNicName: cfg.LogicalNicName,
+		})
+	}
+	return macInterfaceMap
+}
+
 func (r *InstallEnvReconciler) processNMStateConfig(ctx context.Context, installEnv *adiiov1alpha1.InstallEnv) ([]*models.HostStaticNetworkConfig, error) {
 	var staticNetworkConfig []*models.HostStaticNetworkConfig
 
 	if installEnv.Spec.NMStateConfigLabelSelector.MatchLabels == nil {
 		return staticNetworkConfig, nil
 	}
-	NMStateLabelValue, found := installEnv.Spec.NMStateConfigLabelSelector.MatchLabels[SelectorNMStateConfigNameLabel]
-	if !found {
-		return staticNetworkConfig, nil
-	}
-	nmStateConfigs, err := getNMStateConfigsByLabelValue(ctx, r.Client, installEnv.Namespace, NMStateLabelValue)
-	if err != nil {
-		return staticNetworkConfig, err
-	}
-	for _, nmStateConfig := range nmStateConfigs.Items {
-		r.Log.Debugf("found nmStateConfig: %s for installEnv: %s", nmStateConfig.Name, installEnv.Name)
-		macInterfaceMap := make(models.MacInterfaceMap, 0, len(nmStateConfig.Spec.MacInterfaceMap))
-		for _, cfg := range nmStateConfig.Spec.MacInterfaceMap {
-			r.Log.Debugf("adding MAC interface map to host static network config - LogicalNicName: %s, MacAddress: %s ,",
-				cfg.LogicalNicName, cfg.MacAddress)
-			macInterfaceMap = append(macInterfaceMap, &models.MacInterfaceMapItems0{
-				MacAddress:     cfg.MacAddress,
-				LogicalNicName: cfg.LogicalNicName,
+	for labelName, labelValue := range installEnv.Spec.NMStateConfigLabelSelector.MatchLabels {
+		nmStateConfigs := &adiiov1alpha1.NMStateConfigList{}
+		if err := r.List(ctx, nmStateConfigs, client.InNamespace(installEnv.Namespace),
+			client.MatchingLabels(map[string]string{labelName: labelValue})); err != nil {
+			return staticNetworkConfig, err
+		}
+		for _, nmStateConfig := range nmStateConfigs.Items {
+			r.Log.Debugf("found nmStateConfig: %s for installEnv: %s", nmStateConfig.Name, installEnv.Name)
+			staticNetworkConfig = append(staticNetworkConfig, &models.HostStaticNetworkConfig{
+				MacInterfaceMap: r.buildMacInterfaceMap(nmStateConfig),
+				NetworkYaml:     nmStateConfig.Spec.NetworkYaml,
 			})
 		}
-		r.Log.Debugf("adding networkYaml to host static network config: %s", nmStateConfig.Spec.NetworkYaml)
-		staticNetworkConfig = append(staticNetworkConfig, &models.HostStaticNetworkConfig{
-			MacInterfaceMap: macInterfaceMap,
-			NetworkYaml:     nmStateConfig.Spec.NetworkYaml,
-		})
 	}
 	return staticNetworkConfig, nil
 }
@@ -350,27 +352,27 @@ func (r *InstallEnvReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	mapNMStateConfigToInstallEnv := handler.ToRequestsFunc(
 		func(a handler.MapObject) []reconcile.Request {
 			installEnvs := &adiiov1alpha1.InstallEnvList{}
-			NMStateLabelValue, found := a.Meta.GetLabels()[SelectorNMStateConfigNameLabel]
-			if !found {
+			if len(a.Meta.GetLabels()) == 0 {
+				r.Log.Infof("NMState config: %s has no labels", a.Meta.GetName())
 				return []reconcile.Request{}
 			}
-			r.Log.Debugf("Detected NMState config with label: %s, about to search for InstallEnvs with Selector value: %s",
-				SelectorNMStateConfigNameLabel, NMStateLabelValue)
-			if err := r.List(
-				context.Background(),
-				installEnvs,
-				client.InNamespace(a.Meta.GetNamespace()),
-			); err != nil {
+			if err := r.List(context.Background(), installEnvs, client.InNamespace(a.Meta.GetNamespace())); err != nil {
+				r.Log.Info("failed to list InstallEnvs")
 				return []reconcile.Request{}
 			}
+
 			reply := make([]reconcile.Request, 0, len(installEnvs.Items))
-			for _, installEnv := range installEnvs.Items {
-				if installEnv.Spec.NMStateConfigLabelSelector.MatchLabels[SelectorNMStateConfigNameLabel] == NMStateLabelValue {
-					r.Log.Debugf("Detected NMState config for InstallEnv: %s in namespace: %s", installEnv.Name, installEnv.Namespace)
-					reply = append(reply, reconcile.Request{NamespacedName: types.NamespacedName{
-						Namespace: installEnv.Namespace,
-						Name:      installEnv.Name,
-					}})
+			for labelName, labelValue := range a.Meta.GetLabels() {
+				r.Log.Infof("Detected NMState config with label name: %s with value %s, about to search for a matching InstallEnv",
+					labelName, labelValue)
+				for _, installEnv := range installEnvs.Items {
+					if installEnv.Spec.NMStateConfigLabelSelector.MatchLabels[labelName] == labelValue {
+						r.Log.Infof("Detected NMState config for InstallEnv: %s in namespace: %s", installEnv.Name, installEnv.Namespace)
+						reply = append(reply, reconcile.Request{NamespacedName: types.NamespacedName{
+							Namespace: installEnv.Namespace,
+							Name:      installEnv.Name,
+						}})
+					}
 				}
 			}
 			return reply
