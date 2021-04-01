@@ -278,7 +278,7 @@ func getDefaultNMStateConfigSpec(nicPrimary, nicSecondary, macPrimary, macSecond
 			{MacAddress: macPrimary, LogicalNicName: nicPrimary},
 			{MacAddress: macSecondary, LogicalNicName: nicSecondary},
 		},
-		NetworkYaml: networkYaml,
+		NetworkConfig: v1alpha1.State{Raw: []byte(networkYaml)},
 	}
 }
 

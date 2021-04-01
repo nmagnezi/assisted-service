@@ -28,11 +28,19 @@ type MacInterfaceMapItems struct {
 	MacAddress string `json:"macAddress"`
 }
 
+// +kubebuilder:validation:Type=object
+type RawState []byte
+
+type State struct {
+	Raw RawState `json:""`
+}
+
 type NMStateConfigSpec struct {
 	// mapping of host macs to logical interfaces used in the network yaml
 	MacInterfaceMap []*MacInterfaceMapItems `json:"macInterfaceMap,omitempty"`
+	// +kubebuilder:validation:XPreserveUnknownFields
 	// yaml string that can be processed by nmstate
-	NetworkYaml string `json:"networkYAML,omitempty"`
+	NetworkConfig State `json:"networkConfig,omitempty"`
 }
 
 // +kubebuilder:object:root=true

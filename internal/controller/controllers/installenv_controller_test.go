@@ -457,7 +457,7 @@ var _ = Describe("installEnv reconcile", func() {
 						{LogicalNicName: nicPrimary, MacAddress: macPrimary},
 						{LogicalNicName: nicSecondary, MacAddress: macSecondary},
 					},
-					NetworkYaml: hostStaticNetworkConfig.NetworkYaml,
+					NetworkConfig: adiiov1alpha1.State{Raw: []byte(hostStaticNetworkConfig.NetworkYaml)},
 				})
 			Expect(c.Create(ctx, nmstateConfig)).To(BeNil())
 			clusterDeployment := newClusterDeployment("clusterDeployment", testNamespace, getDefaultClusterDeploymentSpec("clusterDeployment-test", "pull-secret"))
@@ -497,7 +497,7 @@ var _ = Describe("installEnv reconcile", func() {
 						{LogicalNicName: nicPrimary, MacAddress: macPrimary},
 						{LogicalNicName: nicSecondary, MacAddress: macSecondary},
 					},
-					NetworkYaml: hostStaticNetworkConfig.NetworkYaml,
+					NetworkConfig: adiiov1alpha1.State{Raw: []byte(hostStaticNetworkConfig.NetworkYaml)},
 				})
 			Expect(c.Create(ctx, nmstateConfig)).To(BeNil())
 			clusterDeployment := newClusterDeployment("clusterDeployment", testNamespace, getDefaultClusterDeploymentSpec("clusterDeployment-test", "pull-secret"))

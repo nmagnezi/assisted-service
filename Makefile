@@ -266,9 +266,9 @@ ci-deploy-for-subsystem: $(VERIFY_CLUSTER) generate-keys
 deploy-test: $(VERIFY_CLUSTER) generate-keys
 	-$(KUBECTL) delete deployments.apps assisted-service &> /dev/null
 	export ASSISTED_ORG=minikube-local-registry && export ASSISTED_TAG=minikube-test && export TEST_FLAGS=--subsystem-test && \
-	export AUTH_TYPE="rhsso" && export DUMMY_IGNITION="True" && export WITH_AMS_SUBSCRIPTIONS="True" && \
+	export AUTH_TYPE="local" && export ENABLE_KUBE_API="True" && export DUMMY_IGNITION="True" && export WITH_AMS_SUBSCRIPTIONS="True" && \
 	export IPV6_SUPPORT="True" && \
-	$(MAKE) _update-minikube deploy-wiremock deploy-all
+	$(MAKE) _update-minikube deploy-all
 
 # $SERVICE is built with docker. If we want the latest version of $SERVICE
 # we need to pull it from the docker daemon before deploy-onprem.

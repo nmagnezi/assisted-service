@@ -60,6 +60,7 @@ func (s *StaticNetworkConfigGenerator) generateHostStaticNetworkConfigData(hostC
 		return nil, fmt.Errorf("%s", msg)
 	}
 	hostYAML := hostConfig[0]
+	s.log.Infof("XXXXXXX generateHostStaticNetworkConfigData: %s",hostYAML)
 	macInterfaceMapping := hostConfig[1]
 	executer := &executer.CommonExecuter{}
 	f, err := executer.TempFile("", "host-config")

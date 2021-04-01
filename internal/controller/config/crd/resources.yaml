@@ -869,9 +869,11 @@ spec:
                   - macAddress
                   type: object
                 type: array
-              networkYAML:
+              networkConfig:
                 description: yaml string that can be processed by nmstate
-                type: string
+                format: byte
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
             type: object
         type: object
     served: true

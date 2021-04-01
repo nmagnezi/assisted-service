@@ -171,9 +171,14 @@ func (r *InstallEnvReconciler) processNMStateConfig(ctx context.Context, install
 		}
 		for _, nmStateConfig := range nmStateConfigs.Items {
 			r.Log.Debugf("found nmStateConfig: %s for installEnv: %s", nmStateConfig.Name, installEnv.Name)
+			r.Log.Infof("XXXXXXX nmStateConfig: %s", string(nmStateConfig.Spec.NetworkConfig.Raw)) // TODO: Remove
+			r.Log.Infof("XXXXXXX nmStateConfig: %d", len(nmStateConfig.Spec.NetworkConfig.Raw))    // TODO: Remove
+			r.Log.Infof("XXXXXXX nmStateConfig: %s", nmStateConfig.Spec.NetworkConfig.Raw)         // TODO: Remove
+			r.Log.Infof("XXXXXXX nmStateConfig: %s", nmStateConfig.Spec.NetworkConfig)             // TODO: Remove
+
 			staticNetworkConfig = append(staticNetworkConfig, &models.HostStaticNetworkConfig{
 				MacInterfaceMap: r.buildMacInterfaceMap(nmStateConfig),
-				NetworkYaml:     nmStateConfig.Spec.NetworkYaml,
+				NetworkYaml:     string(nmStateConfig.Spec.NetworkConfig.Raw),
 			})
 		}
 	}

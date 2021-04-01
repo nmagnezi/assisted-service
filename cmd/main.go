@@ -614,7 +614,7 @@ func createControllerManager() (manager.Manager, error) {
 		utilruntime.Must(adiiov1alpha1.AddToScheme(schemes))
 		utilruntime.Must(hivev1.AddToScheme(schemes))
 
-		syncPeriod := 10 * time.Second
+		syncPeriod := 10 * time.Hour
 
 		return ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 			Scheme:           schemes,
