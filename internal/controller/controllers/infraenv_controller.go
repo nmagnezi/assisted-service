@@ -206,12 +206,17 @@ func (r *InfraEnvReconciler) ensureISO(ctx context.Context, infraEnv *aiv1beta1.
 		clusterDeploymentRefErr := newKubeAPIError(errors.Wrapf(err, errMsg), clientError)
 
 		// Update that we failed to retrieve the clusterDeployment
-		conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, conditionsv1.Condition{
+		condition := conditionsv1.Condition{
 			Type:    aiv1beta1.ImageCreatedCondition,
 			Status:  corev1.ConditionUnknown,
 			Reason:  aiv1beta1.ImageCreationErrorReason,
 			Message: aiv1beta1.ImageStateFailedToCreate + ": " + clusterDeploymentRefErr.Error(),
-		})
+		}
+
+		if !IsConditionPresentAndEqual(infraEnv.Status.Conditions, condition) {
+			conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, condition)
+		}
+
 		if updateErr := r.Status().Update(ctx, infraEnv); updateErr != nil {
 			r.Log.WithError(updateErr).Error("failed to update infraEnv status")
 		}
@@ -232,12 +237,15 @@ func (r *InfraEnvReconciler) ensureISO(ctx context.Context, infraEnv *aiv1beta1.
 			inventoryErr = common.NewApiError(http.StatusInternalServerError, err)
 		}
 		// Update that we failed to retrieve the cluster from the database
-		conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, conditionsv1.Condition{
+		condition := conditionsv1.Condition{
 			Type:    aiv1beta1.ImageCreatedCondition,
 			Status:  corev1.ConditionUnknown,
 			Reason:  aiv1beta1.ImageCreationErrorReason,
 			Message: aiv1beta1.ImageStateFailedToCreate + ": " + inventoryErr.Error(),
-		})
+		}
+		if !IsConditionPresentAndEqual(infraEnv.Status.Conditions, condition) {
+			conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, condition)
+		}
 		if updateErr := r.Status().Update(ctx, infraEnv); updateErr != nil {
 			r.Log.WithError(updateErr).Error("failed to update infraEnv status")
 		}
@@ -282,12 +290,16 @@ func (r *InfraEnvReconciler) ensureISO(ctx context.Context, infraEnv *aiv1beta1.
 
 func (r *InfraEnvReconciler) updateEnsureISOSuccess(
 	ctx context.Context, infraEnv *aiv1beta1.InfraEnv, imageInfo *models.ImageInfo) (ctrl.Result, error) {
-	conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, conditionsv1.Condition{
+	condition := conditionsv1.Condition{
 		Type:    aiv1beta1.ImageCreatedCondition,
 		Status:  corev1.ConditionTrue,
 		Reason:  aiv1beta1.ImageCreatedReason,
 		Message: aiv1beta1.ImageStateCreated,
-	})
+	}
+	if !IsConditionPresentAndEqual(infraEnv.Status.Conditions, condition) {
+		conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, condition)
+	}
+
 	infraEnv.Status.ISODownloadURL = imageInfo.DownloadURL
 	if updateErr := r.Status().Update(ctx, infraEnv); updateErr != nil {
 		r.Log.WithError(updateErr).Error("failed to update infraEnv status")
@@ -312,12 +324,15 @@ func (r *InfraEnvReconciler) handleEnsureISOErrors(
 		err = nil
 		Requeue = false
 		r.Log.Infof("Image %s being prepared for cluster %s", infraEnv.Name, infraEnv.ClusterName)
-		conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, conditionsv1.Condition{
+		condition := conditionsv1.Condition{
 			Type:    aiv1beta1.ImageCreatedCondition,
 			Status:  corev1.ConditionTrue,
 			Reason:  aiv1beta1.ImageCreatedReason,
 			Message: aiv1beta1.ImageStateCreated,
-		})
+		}
+		if !IsConditionPresentAndEqual(infraEnv.Status.Conditions, condition) {
+			conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, condition)
+		}
 	} else { // Actual errors
 		r.Log.WithError(err).Error("infraEnv reconcile failed")
 		if isClientError(err) {
@@ -327,12 +342,15 @@ func (r *InfraEnvReconciler) handleEnsureISOErrors(
 			Requeue = true
 			errMsg = ": internal error"
 		}
-		conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, conditionsv1.Condition{
+		condition := conditionsv1.Condition{
 			Type:    aiv1beta1.ImageCreatedCondition,
 			Status:  corev1.ConditionFalse,
 			Reason:  aiv1beta1.ImageCreationErrorReason,
 			Message: aiv1beta1.ImageStateFailedToCreate + errMsg,
-		})
+		}
+		if !IsConditionPresentAndEqual(infraEnv.Status.Conditions, condition) {
+			conditionsv1.SetStatusCondition(&infraEnv.Status.Conditions, condition)
+		}
 		// In a case of an error, clear the download URL.
 		infraEnv.Status.ISODownloadURL = ""
 	}

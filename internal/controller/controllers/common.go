@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	aiv1beta1 "github.com/openshift/assisted-service/internal/controller/api/v1beta1"
+	conditionsv1 "github.com/openshift/custom-resource-status/conditions/v1"
 	hivev1 "github.com/openshift/hive/apis/hive/v1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -100,3 +101,15 @@ func generatePassword(length int) (string, error) {
 
 	return string(password), nil
 }
+
+func IsConditionPresentAndEqual(conditions []conditionsv1.Condition, condition conditionsv1.Condition) bool {
+	for _, c := range conditions {
+		if c.Type == condition.Type {
+			return c.Status == condition.Status &&
+				c.Reason == condition.Reason &&
+				c.Message == condition.Message
+		}
+	}
+	return false
+}
+
