@@ -69,7 +69,7 @@ func UpdateHostStatus(ctx context.Context, log logrus.FieldLogger, db *gorm.DB, 
 	}
 
 	if newStatus != srcStatus {
-		msg := fmt.Sprintf("Host %s: updated status from \"%s\" to \"%s\"", GetHostnameForMsg(&host.Host), srcStatus, newStatus)
+		msg := fmt.Sprintf("Host %s: updated status from \"%s\" to \"%s\"", GetHostnameForMsg(host), srcStatus, newStatus)
 		if statusInfo != "" {
 			msg += fmt.Sprintf(" (%s)", statusInfo)
 		}

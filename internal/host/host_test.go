@@ -45,7 +45,7 @@ var _ = Describe("update_role", func() {
 		ctx           = context.Background()
 		db            *gorm.DB
 		state         API
-		host          models.Host
+		host          common.Host
 		id, clusterID strfmt.UUID
 		dbName        string
 	)
@@ -260,7 +260,7 @@ var _ = Describe("update_progress", func() {
 		ctx        = context.Background()
 		db         *gorm.DB
 		state      API
-		host       models.Host
+		host       common.Host
 		ctrl       *gomock.Controller
 		mockEvents *events.MockHandler
 		mockMetric *metrics.MockAPI
@@ -291,7 +291,7 @@ var _ = Describe("update_progress", func() {
 	Context("installing host", func() {
 		var (
 			progress   models.HostProgress
-			hostFromDB *models.Host
+			hostFromDB *common.Host
 		)
 
 		BeforeEach(func() {
@@ -492,7 +492,7 @@ var _ = Describe("cancel installation", func() {
 		ctx           = context.Background()
 		db            *gorm.DB
 		state         API
-		h             models.Host
+		h             common.Host
 		eventsHandler events.Handler
 		dbName        string
 	)
@@ -574,7 +574,7 @@ var _ = Describe("reset host", func() {
 		ctx           = context.Background()
 		db            *gorm.DB
 		state         API
-		h             models.Host
+		h             common.Host
 		eventsHandler events.Handler
 		dbName        string
 		config        Config
@@ -698,7 +698,7 @@ var _ = Describe("register host", func() {
 		db            *gorm.DB
 		ctrl          *gomock.Controller
 		state         API
-		h             models.Host
+		h             common.Host
 		eventsHandler *events.MockHandler
 		dbName        string
 		config        Config
@@ -846,7 +846,7 @@ var _ = Describe("UpdateInventory", func() {
 		ctrl              *gomock.Controller
 		mockValidator     *hardware.MockValidator
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1147,7 +1147,7 @@ var _ = Describe("Update hostname", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1260,7 +1260,7 @@ var _ = Describe("Update disk installation path", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		ctrl              *gomock.Controller
 		mockValidator     *hardware.MockValidator
 		dbName            string
@@ -1416,7 +1416,7 @@ var _ = Describe("SetBootstrap", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1477,7 +1477,7 @@ var _ = Describe("UpdateNTP", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1539,7 +1539,7 @@ var _ = Describe("UpdateMachineConfigPoolName", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1621,7 +1621,7 @@ var _ = Describe("update logs_info", func() {
 		ctrl              *gomock.Controller
 		db                *gorm.DB
 		hapi              API
-		host              models.Host
+		host              common.Host
 		hostId, clusterId strfmt.UUID
 		dbName            string
 	)
@@ -1682,7 +1682,7 @@ var _ = Describe("update logs_info", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			h := hostutil.GetHostFromDB(hostId, clusterId, db)
 			Expect(h.LogsInfo).To(Equal(t.logsInfo))
-			t.validateTimestamp(h)
+			t.validateTimestamp(&h.Host)
 		})
 	}
 })
@@ -1696,7 +1696,7 @@ var _ = Describe("UpdateImageStatus", func() {
 		mockEvents        *events.MockHandler
 		mockMetric        *metrics.MockAPI
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -2098,7 +2098,7 @@ var _ = Describe("Validation metrics and events", func() {
 		mockMetric      *metrics.MockAPI
 		validatorCfg    *hardware.ValidatorCfg
 		m               *Manager
-		h               *models.Host
+		h               *common.Host
 	)
 
 	generateTestValidationResult := func(status ValidationStatus) ValidationsStatus {
@@ -2113,7 +2113,7 @@ var _ = Describe("Validation metrics and events", func() {
 		return validationRes
 	}
 
-	registerTestHostWithValidations := func(clusterID strfmt.UUID) *models.Host {
+	registerTestHostWithValidations := func(clusterID strfmt.UUID) *common.Host {
 
 		hostID := strfmt.UUID(uuid.New().String())
 		h := hostutil.GenerateTestHost(hostID, clusterID, models.HostStatusInsufficient)
@@ -2197,10 +2197,10 @@ var _ = Describe("SetDiskSpeed", func() {
 		mockHwValidator *hardware.MockValidator
 		validatorCfg    *hardware.ValidatorCfg
 		m               *Manager
-		h               *models.Host
+		h               *common.Host
 	)
 
-	registerTestHost := func(clusterID strfmt.UUID) *models.Host {
+	registerTestHost := func(clusterID strfmt.UUID) *common.Host {
 
 		hostID := strfmt.UUID(uuid.New().String())
 		h := hostutil.GenerateTestHost(hostID, clusterID, models.HostStatusInsufficient)

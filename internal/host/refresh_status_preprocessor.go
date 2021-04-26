@@ -75,7 +75,7 @@ func (r *refreshPreprocessor) preprocess(c *validationContext) (map[string]bool,
 	}
 
 	// Validate operators
-	results, err := r.operatorsApi.ValidateHost(context.TODO(), c.cluster, c.host)
+	results, err := r.operatorsApi.ValidateHost(context.TODO(), c.cluster, &c.host.Host)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -13,8 +13,8 @@ import (
 	"github.com/openshift/assisted-service/pkg/conversions"
 )
 
-func GetHostFromDB(hostId, clusterId strfmt.UUID, db *gorm.DB) *models.Host {
-	var host models.Host
+func GetHostFromDB(hostId, clusterId strfmt.UUID, db *gorm.DB) *common.Host {
+	var host common.Host
 	Expect(db.First(&host, "id = ? and cluster_id = ?", hostId, clusterId).Error).ShouldNot(HaveOccurred())
 	return &host
 }
@@ -30,30 +30,32 @@ func GenerateTestCluster(clusterID strfmt.UUID, machineNetworkCidr string) commo
 
 /* Host */
 
-func GenerateTestHost(hostID, clusterID strfmt.UUID, state string) models.Host {
+func GenerateTestHost(hostID, clusterID strfmt.UUID, state string) common.Host {
 	return GenerateTestHostByKind(hostID, clusterID, state, models.HostKindHost)
 }
 
-func GenerateTestHostAddedToCluster(hostID, clusterID strfmt.UUID, state string) models.Host {
+func GenerateTestHostAddedToCluster(hostID, clusterID strfmt.UUID, state string) common.Host {
 	return GenerateTestHostByKind(hostID, clusterID, state, models.HostKindAddToExistingClusterHost)
 }
 
-func GenerateTestHostByKind(hostID, clusterID strfmt.UUID, state, kind string) models.Host {
+func GenerateTestHostByKind(hostID, clusterID strfmt.UUID, state, kind string) common.Host {
 	now := strfmt.DateTime(time.Now())
-	return models.Host{
-		ID:              &hostID,
-		ClusterID:       clusterID,
-		Status:          swag.String(state),
-		Inventory:       common.GenerateTestDefaultInventory(),
-		Role:            models.HostRoleWorker,
-		Kind:            swag.String(kind),
-		CheckedInAt:     now,
-		StatusUpdatedAt: now,
-		Progress: &models.HostProgressInfo{
-			StageStartedAt: now,
-			StageUpdatedAt: now,
+	return common.Host{
+		Host: models.Host{
+			ID:              &hostID,
+			ClusterID:       clusterID,
+			Status:          swag.String(state),
+			Inventory:       common.GenerateTestDefaultInventory(),
+			Role:            models.HostRoleWorker,
+			Kind:            swag.String(kind),
+			CheckedInAt:     now,
+			StatusUpdatedAt: now,
+			Progress: &models.HostProgressInfo{
+				StageStartedAt: now,
+				StageUpdatedAt: now,
+			},
+			APIVipConnectivity: generateTestAPIVIpConnectivity(),
 		},
-		APIVipConnectivity: generateTestAPIVIpConnectivity(),
 	}
 }
 

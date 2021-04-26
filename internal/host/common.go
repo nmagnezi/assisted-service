@@ -75,7 +75,7 @@ func indexOfStage(element models.HostStage, data []models.HostStage) int {
 }
 
 // update host role with an option to update only if the current role is srcRole to prevent races
-func updateRole(log logrus.FieldLogger, h *models.Host, role models.HostRole, db *gorm.DB, srcRole *string) error {
+func updateRole(log logrus.FieldLogger, h *common.Host, role models.HostRole, db *gorm.DB, srcRole *string) error {
 	hostStatus := swag.StringValue(h.Status)
 	if !funk.ContainsString(hostStatusesBeforeInstallation[:], hostStatus) {
 		return common.NewApiError(http.StatusBadRequest,

@@ -152,6 +152,11 @@ func (r *ClusterDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err != nil {
 			return r.updateState(ctx, clusterDeployment, cluster, err)
 		}
+
+		if err = r.NotifyClusterDeploymentAgents(req.NamespacedName); err != nil {
+			return r.updateState(ctx, clusterDeployment, cluster, err)
+		}
+
 		if !r.isSNO(clusterDeployment) {
 			//Create Day2 cluster
 			return r.createNewDay2Cluster(ctx, req.NamespacedName, clusterDeployment)
@@ -197,7 +202,7 @@ func (r *ClusterDeploymentsReconciler) installDay2Hosts(ctx context.Context, clu
 		if err != nil {
 			return r.updateState(ctx, clusterDeployment, cluster, err)
 		}
-		if r.HostApi.IsInstallable(h) && commonh.Approved {
+		if r.HostApi.IsInstallable(commonh) && commonh.Approved {
 			r.Log.Infof("Installing Day2 host %s in %s %s", *h.ID, clusterDeployment.Name, clusterDeployment.Namespace)
 			err = r.Installer.InstallSingleDay2HostInternal(ctx, *cluster.ID, *h.ID)
 			if err != nil {
@@ -315,7 +320,7 @@ func (r *ClusterDeploymentsReconciler) isReadyForInstallation(ctx context.Contex
 		if err != nil {
 			return false, err
 		}
-		if r.HostApi.IsInstallable(h) && commonh.Approved {
+		if r.HostApi.IsInstallable(commonh) && commonh.Approved {
 			readyHosts += 1
 		}
 	}
@@ -667,9 +672,29 @@ func (r *ClusterDeploymentsReconciler) deregisterClusterIfNeeded(ctx context.Con
 		return buildReply(err)
 	}
 
+	if err = r.NotifyClusterDeploymentAgents(key); err != nil {
+		return buildReply(err)
+	}
+
 	r.Log.Infof("Cluster resource deleted, Unregistered cluster: %s", c.ID.String())
 
 	return buildReply(nil)
+}
+
+func (r *ClusterDeploymentsReconciler) NotifyClusterDeploymentAgents(clusterDeployment types.NamespacedName) error {
+	agents := &v1beta1.AgentList{}
+	if err := r.List(context.Background(), agents); err != nil {
+		return err
+	}
+	for _, clusterAgent := range agents.Items {
+		if clusterAgent.Spec.ClusterDeploymentName.Name == clusterDeployment.Name &&
+			clusterAgent.Spec.ClusterDeploymentName.Namespace == clusterDeployment.Namespace {
+			r.Log.Infof("clusterDeployment %s namespace %s, notifying agent %s to reconcile for updates.",
+				clusterDeployment.Name, clusterDeployment.Namespace, clusterAgent.Name) //TODO before merge: change to debug
+			r.CRDEventsHandler.NotifyAgentUpdates(clusterAgent.Name, clusterAgent.Namespace)
+		}
+	}
+	return nil
 }
 
 func (r *ClusterDeploymentsReconciler) SetupWithManager(mgr ctrl.Manager) error {

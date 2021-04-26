@@ -29,7 +29,7 @@ var _ = Describe("monitor_disconnection", func() {
 		ctx        = context.Background()
 		db         *gorm.DB
 		state      API
-		host       models.Host
+		host       common.Host
 		ctrl       *gomock.Controller
 		mockEvents *events.MockHandler
 		dbName     string
@@ -50,7 +50,7 @@ var _ = Describe("monitor_disconnection", func() {
 		state = NewManager(common.GetTestLog(), db, mockEvents, mockHwValidator, nil, createValidatorCfg(),
 			nil, defaultConfig, dummy, mockOperators, nil)
 		clusterID := strfmt.UUID(uuid.New().String())
-		host = hostutil.GenerateTestHost(strfmt.UUID(uuid.New().String()), clusterID, models.HostStatusDiscovering)
+		host.Host = hostutil.GenerateTestHost(strfmt.UUID(uuid.New().String()), clusterID, models.HostStatusDiscovering)
 		cluster := hostutil.GenerateTestCluster(clusterID, "1.1.0.0/16")
 		Expect(db.Save(&cluster).Error).ToNot(HaveOccurred())
 		host.Inventory = workerInventory()
@@ -129,7 +129,7 @@ var _ = Describe("TestHostMonitoring", func() {
 		ctx        = context.Background()
 		db         *gorm.DB
 		state      API
-		host       models.Host
+		host       common.Host
 		ctrl       *gomock.Controller
 		cfg        Config
 		mockEvents *events.MockHandler
@@ -176,7 +176,7 @@ var _ = Describe("TestHostMonitoring", func() {
 					cluster := hostutil.GenerateTestCluster(clusterID, "1.1.0.0/16")
 					Expect(db.Save(&cluster).Error).ToNot(HaveOccurred())
 				}
-				host = hostutil.GenerateTestHost(strfmt.UUID(uuid.New().String()), clusterID, models.HostStatusDiscovering)
+				host.Host = hostutil.GenerateTestHost(strfmt.UUID(uuid.New().String()), clusterID, models.HostStatusDiscovering)
 				host.Inventory = workerInventory()
 				Expect(state.RegisterHost(ctx, &host, db)).ShouldNot(HaveOccurred())
 				host.CheckedInAt = strfmt.DateTime(time.Now().Add(-4 * time.Minute))

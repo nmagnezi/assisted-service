@@ -12,6 +12,7 @@ import (
 	common "github.com/openshift/assisted-service/internal/common"
 	models "github.com/openshift/assisted-service/models"
 	logrus "github.com/sirupsen/logrus"
+	types "k8s.io/apimachinery/pkg/types"
 	reflect "reflect"
 )
 
@@ -39,7 +40,7 @@ func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 }
 
 // AutoAssignRole mocks base method
-func (m *MockAPI) AutoAssignRole(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) AutoAssignRole(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AutoAssignRole", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -53,7 +54,7 @@ func (mr *MockAPIMockRecorder) AutoAssignRole(arg0, arg1, arg2 interface{}) *gom
 }
 
 // CancelInstallation mocks base method
-func (m *MockAPI) CancelInstallation(arg0 context.Context, arg1 *models.Host, arg2 string, arg3 *gorm.DB) *common.ApiErrorResponse {
+func (m *MockAPI) CancelInstallation(arg0 context.Context, arg1 *common.Host, arg2 string, arg3 *gorm.DB) *common.ApiErrorResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancelInstallation", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*common.ApiErrorResponse)
@@ -67,7 +68,7 @@ func (mr *MockAPIMockRecorder) CancelInstallation(arg0, arg1, arg2, arg3 interfa
 }
 
 // DisableHost mocks base method
-func (m *MockAPI) DisableHost(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) DisableHost(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableHost", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -81,7 +82,7 @@ func (mr *MockAPIMockRecorder) DisableHost(arg0, arg1, arg2 interface{}) *gomock
 }
 
 // EnableHost mocks base method
-func (m *MockAPI) EnableHost(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) EnableHost(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableHost", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -94,8 +95,23 @@ func (mr *MockAPIMockRecorder) EnableHost(arg0, arg1, arg2 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableHost", reflect.TypeOf((*MockAPI)(nil).EnableHost), arg0, arg1, arg2)
 }
 
+// GetHostByKubeKey mocks base method
+func (m *MockAPI) GetHostByKubeKey(arg0 types.NamespacedName) (*common.Host, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHostByKubeKey", arg0)
+	ret0, _ := ret[0].(*common.Host)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHostByKubeKey indicates an expected call of GetHostByKubeKey
+func (mr *MockAPIMockRecorder) GetHostByKubeKey(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostByKubeKey", reflect.TypeOf((*MockAPI)(nil).GetHostByKubeKey), arg0)
+}
+
 // GetHostValidDisks mocks base method
-func (m *MockAPI) GetHostValidDisks(arg0 *models.Host) ([]*models.Disk, error) {
+func (m *MockAPI) GetHostValidDisks(arg0 *common.Host) ([]*models.Disk, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHostValidDisks", arg0)
 	ret0, _ := ret[0].([]*models.Disk)
@@ -139,7 +155,7 @@ func (mr *MockAPIMockRecorder) GetStagesByRole(arg0, arg1 interface{}) *gomock.C
 }
 
 // HandleInstallationFailure mocks base method
-func (m *MockAPI) HandleInstallationFailure(arg0 context.Context, arg1 *models.Host) error {
+func (m *MockAPI) HandleInstallationFailure(arg0 context.Context, arg1 *common.Host) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HandleInstallationFailure", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -165,7 +181,7 @@ func (mr *MockAPIMockRecorder) HostMonitoring() *gomock.Call {
 }
 
 // Install mocks base method
-func (m *MockAPI) Install(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) Install(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Install", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -179,7 +195,7 @@ func (mr *MockAPIMockRecorder) Install(arg0, arg1, arg2 interface{}) *gomock.Cal
 }
 
 // IsInstallable mocks base method
-func (m *MockAPI) IsInstallable(arg0 *models.Host) bool {
+func (m *MockAPI) IsInstallable(arg0 *common.Host) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsInstallable", arg0)
 	ret0, _ := ret[0].(bool)
@@ -193,7 +209,7 @@ func (mr *MockAPIMockRecorder) IsInstallable(arg0 interface{}) *gomock.Call {
 }
 
 // IsRequireUserActionReset mocks base method
-func (m *MockAPI) IsRequireUserActionReset(arg0 *models.Host) bool {
+func (m *MockAPI) IsRequireUserActionReset(arg0 *common.Host) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsRequireUserActionReset", arg0)
 	ret0, _ := ret[0].(bool)
@@ -207,7 +223,7 @@ func (mr *MockAPIMockRecorder) IsRequireUserActionReset(arg0 interface{}) *gomoc
 }
 
 // IsValidMasterCandidate mocks base method
-func (m *MockAPI) IsValidMasterCandidate(arg0 *models.Host, arg1 *gorm.DB, arg2 logrus.FieldLogger) (bool, error) {
+func (m *MockAPI) IsValidMasterCandidate(arg0 *common.Host, arg1 *gorm.DB, arg2 logrus.FieldLogger) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsValidMasterCandidate", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
@@ -236,7 +252,7 @@ func (mr *MockAPIMockRecorder) PermanentHostsDeletion(arg0 interface{}) *gomock.
 }
 
 // RefreshStatus mocks base method
-func (m *MockAPI) RefreshStatus(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) RefreshStatus(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshStatus", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -250,7 +266,7 @@ func (mr *MockAPIMockRecorder) RefreshStatus(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // RegisterHost mocks base method
-func (m *MockAPI) RegisterHost(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) RegisterHost(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterHost", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -264,7 +280,7 @@ func (mr *MockAPIMockRecorder) RegisterHost(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // RegisterInstalledOCPHost mocks base method
-func (m *MockAPI) RegisterInstalledOCPHost(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) RegisterInstalledOCPHost(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterInstalledOCPHost", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -278,7 +294,7 @@ func (mr *MockAPIMockRecorder) RegisterInstalledOCPHost(arg0, arg1, arg2 interfa
 }
 
 // ReportValidationFailedMetrics mocks base method
-func (m *MockAPI) ReportValidationFailedMetrics(arg0 context.Context, arg1 *models.Host, arg2, arg3 string) error {
+func (m *MockAPI) ReportValidationFailedMetrics(arg0 context.Context, arg1 *common.Host, arg2, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReportValidationFailedMetrics", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -292,7 +308,7 @@ func (mr *MockAPIMockRecorder) ReportValidationFailedMetrics(arg0, arg1, arg2, a
 }
 
 // ResetHost mocks base method
-func (m *MockAPI) ResetHost(arg0 context.Context, arg1 *models.Host, arg2 string, arg3 *gorm.DB) *common.ApiErrorResponse {
+func (m *MockAPI) ResetHost(arg0 context.Context, arg1 *common.Host, arg2 string, arg3 *gorm.DB) *common.ApiErrorResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResetHost", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*common.ApiErrorResponse)
@@ -306,7 +322,7 @@ func (mr *MockAPIMockRecorder) ResetHost(arg0, arg1, arg2, arg3 interface{}) *go
 }
 
 // ResetPendingUserAction mocks base method
-func (m *MockAPI) ResetPendingUserAction(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) ResetPendingUserAction(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResetPendingUserAction", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -320,7 +336,7 @@ func (mr *MockAPIMockRecorder) ResetPendingUserAction(arg0, arg1, arg2 interface
 }
 
 // SetBootstrap mocks base method
-func (m *MockAPI) SetBootstrap(arg0 context.Context, arg1 *models.Host, arg2 bool, arg3 *gorm.DB) error {
+func (m *MockAPI) SetBootstrap(arg0 context.Context, arg1 *common.Host, arg2 bool, arg3 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetBootstrap", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -334,7 +350,7 @@ func (mr *MockAPIMockRecorder) SetBootstrap(arg0, arg1, arg2, arg3 interface{}) 
 }
 
 // SetDiskSpeed mocks base method
-func (m *MockAPI) SetDiskSpeed(arg0 context.Context, arg1 *models.Host, arg2 string, arg3, arg4 int64, arg5 *gorm.DB) error {
+func (m *MockAPI) SetDiskSpeed(arg0 context.Context, arg1 *common.Host, arg2 string, arg3, arg4 int64, arg5 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetDiskSpeed", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
@@ -348,7 +364,7 @@ func (mr *MockAPIMockRecorder) SetDiskSpeed(arg0, arg1, arg2, arg3, arg4, arg5 i
 }
 
 // SetUploadLogsAt mocks base method
-func (m *MockAPI) SetUploadLogsAt(arg0 context.Context, arg1 *models.Host, arg2 *gorm.DB) error {
+func (m *MockAPI) SetUploadLogsAt(arg0 context.Context, arg1 *common.Host, arg2 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetUploadLogsAt", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -362,7 +378,7 @@ func (mr *MockAPIMockRecorder) SetUploadLogsAt(arg0, arg1, arg2 interface{}) *go
 }
 
 // UpdateApiVipConnectivityReport mocks base method
-func (m *MockAPI) UpdateApiVipConnectivityReport(arg0 context.Context, arg1 *models.Host, arg2 string) error {
+func (m *MockAPI) UpdateApiVipConnectivityReport(arg0 context.Context, arg1 *common.Host, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateApiVipConnectivityReport", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -376,7 +392,7 @@ func (mr *MockAPIMockRecorder) UpdateApiVipConnectivityReport(arg0, arg1, arg2 i
 }
 
 // UpdateConnectivityReport mocks base method
-func (m *MockAPI) UpdateConnectivityReport(arg0 context.Context, arg1 *models.Host, arg2 string) error {
+func (m *MockAPI) UpdateConnectivityReport(arg0 context.Context, arg1 *common.Host, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConnectivityReport", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -390,7 +406,7 @@ func (mr *MockAPIMockRecorder) UpdateConnectivityReport(arg0, arg1, arg2 interfa
 }
 
 // UpdateHostname mocks base method
-func (m *MockAPI) UpdateHostname(arg0 context.Context, arg1 *models.Host, arg2 string, arg3 *gorm.DB) error {
+func (m *MockAPI) UpdateHostname(arg0 context.Context, arg1 *common.Host, arg2 string, arg3 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateHostname", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -404,7 +420,7 @@ func (mr *MockAPIMockRecorder) UpdateHostname(arg0, arg1, arg2, arg3 interface{}
 }
 
 // UpdateImageStatus mocks base method
-func (m *MockAPI) UpdateImageStatus(arg0 context.Context, arg1 *models.Host, arg2 *models.ContainerImageAvailability, arg3 *gorm.DB) error {
+func (m *MockAPI) UpdateImageStatus(arg0 context.Context, arg1 *common.Host, arg2 *models.ContainerImageAvailability, arg3 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateImageStatus", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -418,7 +434,7 @@ func (mr *MockAPIMockRecorder) UpdateImageStatus(arg0, arg1, arg2, arg3 interfac
 }
 
 // UpdateInstallProgress mocks base method
-func (m *MockAPI) UpdateInstallProgress(arg0 context.Context, arg1 *models.Host, arg2 *models.HostProgress) error {
+func (m *MockAPI) UpdateInstallProgress(arg0 context.Context, arg1 *common.Host, arg2 *models.HostProgress) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateInstallProgress", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -432,7 +448,7 @@ func (mr *MockAPIMockRecorder) UpdateInstallProgress(arg0, arg1, arg2 interface{
 }
 
 // UpdateInstallationDisk mocks base method
-func (m *MockAPI) UpdateInstallationDisk(arg0 context.Context, arg1 *gorm.DB, arg2 *models.Host, arg3 string) error {
+func (m *MockAPI) UpdateInstallationDisk(arg0 context.Context, arg1 *gorm.DB, arg2 *common.Host, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateInstallationDisk", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -446,7 +462,7 @@ func (mr *MockAPIMockRecorder) UpdateInstallationDisk(arg0, arg1, arg2, arg3 int
 }
 
 // UpdateInventory mocks base method
-func (m *MockAPI) UpdateInventory(arg0 context.Context, arg1 *models.Host, arg2 string) error {
+func (m *MockAPI) UpdateInventory(arg0 context.Context, arg1 *common.Host, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateInventory", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -460,7 +476,7 @@ func (mr *MockAPIMockRecorder) UpdateInventory(arg0, arg1, arg2 interface{}) *go
 }
 
 // UpdateLogsProgress mocks base method
-func (m *MockAPI) UpdateLogsProgress(arg0 context.Context, arg1 *models.Host, arg2 string) error {
+func (m *MockAPI) UpdateLogsProgress(arg0 context.Context, arg1 *common.Host, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateLogsProgress", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -474,7 +490,7 @@ func (mr *MockAPIMockRecorder) UpdateLogsProgress(arg0, arg1, arg2 interface{}) 
 }
 
 // UpdateMachineConfigPoolName mocks base method
-func (m *MockAPI) UpdateMachineConfigPoolName(arg0 context.Context, arg1 *gorm.DB, arg2 *models.Host, arg3 string) error {
+func (m *MockAPI) UpdateMachineConfigPoolName(arg0 context.Context, arg1 *gorm.DB, arg2 *common.Host, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateMachineConfigPoolName", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -488,7 +504,7 @@ func (mr *MockAPIMockRecorder) UpdateMachineConfigPoolName(arg0, arg1, arg2, arg
 }
 
 // UpdateNTP mocks base method
-func (m *MockAPI) UpdateNTP(arg0 context.Context, arg1 *models.Host, arg2 []*models.NtpSource, arg3 *gorm.DB) error {
+func (m *MockAPI) UpdateNTP(arg0 context.Context, arg1 *common.Host, arg2 []*models.NtpSource, arg3 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateNTP", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -502,7 +518,7 @@ func (mr *MockAPIMockRecorder) UpdateNTP(arg0, arg1, arg2, arg3 interface{}) *go
 }
 
 // UpdateRole mocks base method
-func (m *MockAPI) UpdateRole(arg0 context.Context, arg1 *models.Host, arg2 models.HostRole, arg3 *gorm.DB) error {
+func (m *MockAPI) UpdateRole(arg0 context.Context, arg1 *common.Host, arg2 models.HostRole, arg3 *gorm.DB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRole", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)

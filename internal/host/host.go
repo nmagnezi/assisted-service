@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var BootstrapStages = [...]models.HostStage{
@@ -99,44 +100,45 @@ type Config struct {
 type API interface {
 	hostcommands.InstructionApi
 	// Register a new host
-	RegisterHost(ctx context.Context, h *models.Host, db *gorm.DB) error
-	RegisterInstalledOCPHost(ctx context.Context, h *models.Host, db *gorm.DB) error
-	HandleInstallationFailure(ctx context.Context, h *models.Host) error
-	UpdateInstallProgress(ctx context.Context, h *models.Host, progress *models.HostProgress) error
-	RefreshStatus(ctx context.Context, h *models.Host, db *gorm.DB) error
-	SetBootstrap(ctx context.Context, h *models.Host, isbootstrap bool, db *gorm.DB) error
-	UpdateConnectivityReport(ctx context.Context, h *models.Host, connectivityReport string) error
-	UpdateApiVipConnectivityReport(ctx context.Context, h *models.Host, connectivityReport string) error
+	RegisterHost(ctx context.Context, h *common.Host, db *gorm.DB) error
+	RegisterInstalledOCPHost(ctx context.Context, h *common.Host, db *gorm.DB) error
+	HandleInstallationFailure(ctx context.Context, h *common.Host) error
+	UpdateInstallProgress(ctx context.Context, h *common.Host, progress *models.HostProgress) error
+	RefreshStatus(ctx context.Context, h *common.Host, db *gorm.DB) error
+	SetBootstrap(ctx context.Context, h *common.Host, isbootstrap bool, db *gorm.DB) error
+	UpdateConnectivityReport(ctx context.Context, h *common.Host, connectivityReport string) error
+	UpdateApiVipConnectivityReport(ctx context.Context, h *common.Host, connectivityReport string) error
 	HostMonitoring()
-	CancelInstallation(ctx context.Context, h *models.Host, reason string, db *gorm.DB) *common.ApiErrorResponse
-	IsRequireUserActionReset(h *models.Host) bool
-	ResetHost(ctx context.Context, h *models.Host, reason string, db *gorm.DB) *common.ApiErrorResponse
-	ResetPendingUserAction(ctx context.Context, h *models.Host, db *gorm.DB) error
+	CancelInstallation(ctx context.Context, h *common.Host, reason string, db *gorm.DB) *common.ApiErrorResponse
+	IsRequireUserActionReset(h *common.Host) bool
+	ResetHost(ctx context.Context, h *common.Host, reason string, db *gorm.DB) *common.ApiErrorResponse
+	ResetPendingUserAction(ctx context.Context, h *common.Host, db *gorm.DB) error
 	// Disable host from getting any requests
-	DisableHost(ctx context.Context, h *models.Host, db *gorm.DB) error
+	DisableHost(ctx context.Context, h *common.Host, db *gorm.DB) error
 	// Enable host to get requests (disabled by default)
-	EnableHost(ctx context.Context, h *models.Host, db *gorm.DB) error
+	EnableHost(ctx context.Context, h *common.Host, db *gorm.DB) error
 	// Install host - db is optional, for transactions
-	Install(ctx context.Context, h *models.Host, db *gorm.DB) error
+	Install(ctx context.Context, h *common.Host, db *gorm.DB) error
 	GetStagesByRole(role models.HostRole, isbootstrap bool) []models.HostStage
-	IsInstallable(h *models.Host) bool
+	IsInstallable(h *common.Host) bool
 	// auto assign host role
-	AutoAssignRole(ctx context.Context, h *models.Host, db *gorm.DB) error
-	IsValidMasterCandidate(h *models.Host, db *gorm.DB, log logrus.FieldLogger) (bool, error)
-	SetUploadLogsAt(ctx context.Context, h *models.Host, db *gorm.DB) error
-	UpdateLogsProgress(ctx context.Context, h *models.Host, progress string) error
+	AutoAssignRole(ctx context.Context, h *common.Host, db *gorm.DB) error
+	IsValidMasterCandidate(h *common.Host, db *gorm.DB, log logrus.FieldLogger) (bool, error)
+	SetUploadLogsAt(ctx context.Context, h *common.Host, db *gorm.DB) error
+	UpdateLogsProgress(ctx context.Context, h *common.Host, progress string) error
 	PermanentHostsDeletion(olderThan strfmt.DateTime) error
-	ReportValidationFailedMetrics(ctx context.Context, h *models.Host, ocpVersion, emailDomain string) error
+	ReportValidationFailedMetrics(ctx context.Context, h *common.Host, ocpVersion, emailDomain string) error
 
-	UpdateRole(ctx context.Context, h *models.Host, role models.HostRole, db *gorm.DB) error
-	UpdateHostname(ctx context.Context, h *models.Host, hostname string, db *gorm.DB) error
-	UpdateInventory(ctx context.Context, h *models.Host, inventory string) error
-	UpdateNTP(ctx context.Context, h *models.Host, ntpSources []*models.NtpSource, db *gorm.DB) error
-	UpdateMachineConfigPoolName(ctx context.Context, db *gorm.DB, h *models.Host, machineConfigPoolName string) error
-	UpdateInstallationDisk(ctx context.Context, db *gorm.DB, h *models.Host, installationDiskId string) error
-	GetHostValidDisks(role *models.Host) ([]*models.Disk, error)
-	UpdateImageStatus(ctx context.Context, h *models.Host, imageStatus *models.ContainerImageAvailability, db *gorm.DB) error
-	SetDiskSpeed(ctx context.Context, h *models.Host, path string, speedMs int64, exitCode int64, db *gorm.DB) error
+	UpdateRole(ctx context.Context, h *common.Host, role models.HostRole, db *gorm.DB) error
+	UpdateHostname(ctx context.Context, h *common.Host, hostname string, db *gorm.DB) error
+	UpdateInventory(ctx context.Context, h *common.Host, inventory string) error
+	UpdateNTP(ctx context.Context, h *common.Host, ntpSources []*models.NtpSource, db *gorm.DB) error
+	UpdateMachineConfigPoolName(ctx context.Context, db *gorm.DB, h *common.Host, machineConfigPoolName string) error
+	UpdateInstallationDisk(ctx context.Context, db *gorm.DB, h *common.Host, installationDiskId string) error
+	GetHostValidDisks(role *common.Host) ([]*models.Disk, error)
+	GetHostByKubeKey(key types.NamespacedName) (*common.Host, error)
+	UpdateImageStatus(ctx context.Context, h *common.Host, imageStatus *models.ContainerImageAvailability, db *gorm.DB) error
+	SetDiskSpeed(ctx context.Context, h *common.Host, path string, speedMs int64, exitCode int64, db *gorm.DB) error
 }
 
 type Manager struct {
@@ -176,26 +178,33 @@ func NewManager(log logrus.FieldLogger, db *gorm.DB, eventsHandler events.Handle
 	}
 }
 
-func (m *Manager) RegisterHost(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) RegisterHost(ctx context.Context, h *common.Host, db *gorm.DB) error {
+	m.log.Infof("XXX: start RegisterHost")
+	m.log.Infof("XXX: RegisterHost: got host kube name %s ns %s", h.KubeKeyName, h.KubeKeyNamespace)
 	dbHost, err := common.GetHostFromDB(db, h.ClusterID.String(), h.ID.String())
-	var host *models.Host
+	var host *common.Host
 	if err != nil {
+		m.log.Infof("XXX: RegisterHost: got err for fetching dbhost %s", err.Error())
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			m.log.Infof("XXX: RegisterHost: got ErrRecordNotFound type err for fetching dbhost %s", err.Error())
 			return err
 		}
 
 		// Delete any previews record of the host if it was soft deleted from the cluster,
 		// no error will be returned if the host was not existed.
-		if err := db.Unscoped().Delete(&common.Host{}, "id = ? and cluster_id = ?", *h.ID, h.ClusterID).Error; err != nil {
+		if err := db.Unscoped().Delete(&common.Host{}, "id = ? and cluster_id = ?", *h.Host.ID, h.Host.ClusterID).Error; err != nil {
+			m.log.Infof("XXX: RegisterHost: failed to delete err: %s", err.Error())
 			return errors.Wrapf(
 				err,
 				"error while trying to delete previews record from db (if exists) of host %s in cluster %s",
 				h.ID.String(), h.ClusterID.String())
 		}
 
+		m.log.Infof("XXX: RegisterHost: got dbhost kube name %s ns %s", dbHost.KubeKeyName, dbHost.KubeKeyNamespace)
 		host = h
 	} else {
-		host = &dbHost.Host
+		m.log.Infof("XXX: RegisterHost: got dbhost kube name %s ns %s", dbHost.KubeKeyName, dbHost.KubeKeyNamespace)
+		host = dbHost
 	}
 
 	return m.sm.Run(TransitionTypeRegisterHost, newStateHost(host), &TransitionArgsRegisterHost{
@@ -205,14 +214,14 @@ func (m *Manager) RegisterHost(ctx context.Context, h *models.Host, db *gorm.DB)
 	})
 }
 
-func (m *Manager) RegisterInstalledOCPHost(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) RegisterInstalledOCPHost(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	return m.sm.Run(TransitionTypeRegisterInstalledHost, newStateHost(h), &TransitionArgsRegisterInstalledHost{
 		ctx: ctx,
 		db:  db,
 	})
 }
 
-func (m *Manager) HandleInstallationFailure(ctx context.Context, h *models.Host) error {
+func (m *Manager) HandleInstallationFailure(ctx context.Context, h *common.Host) error {
 
 	lastStatusUpdateTime := h.StatusUpdatedAt
 	err := m.sm.Run(TransitionTypeHostInstallationFailed, newStateHost(h), &TransitionArgsHostInstallationFailed{
@@ -258,7 +267,7 @@ func (m *Manager) populateDisksId(inventory *models.Inventory) {
 	}
 }
 
-func (m *Manager) HandlePrepareInstallationFailure(ctx context.Context, h *models.Host, reason string) error {
+func (m *Manager) HandlePrepareInstallationFailure(ctx context.Context, h *common.Host, reason string) error {
 
 	lastStatusUpdateTime := h.StatusUpdatedAt
 	err := m.sm.Run(TransitionTypeHostInstallationFailed, newStateHost(h), &TransitionArgsHostInstallationFailed{
@@ -272,7 +281,7 @@ func (m *Manager) HandlePrepareInstallationFailure(ctx context.Context, h *model
 	return err
 }
 
-func (m *Manager) UpdateInventory(ctx context.Context, h *models.Host, inventoryStr string) error {
+func (m *Manager) UpdateInventory(ctx context.Context, h *common.Host, inventoryStr string) error {
 	hostStatus := swag.StringValue(h.Status)
 	allowedStatuses := append(hostStatusesBeforeInstallation[:], models.HostStatusInstallingInProgress)
 
@@ -313,7 +322,7 @@ func (m *Manager) UpdateInventory(ctx context.Context, h *models.Host, inventory
 	}).Error
 }
 
-func (m *Manager) RefreshStatus(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) RefreshStatus(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	if db == nil {
 		db = m.db
 	}
@@ -325,7 +334,7 @@ func (m *Manager) RefreshStatus(ctx context.Context, h *models.Host, db *gorm.DB
 	if err != nil {
 		return err
 	}
-	currentValidationRes, err := GetValidations(h)
+	currentValidationRes, err := GetValidations(&h.Host)
 	if err != nil {
 		return err
 	}
@@ -353,7 +362,7 @@ func (m *Manager) RefreshStatus(ctx context.Context, h *models.Host, db *gorm.DB
 	return nil
 }
 
-func (m *Manager) Install(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) Install(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	cdb := m.db
 	if db != nil {
 		cdb = db
@@ -364,14 +373,14 @@ func (m *Manager) Install(ctx context.Context, h *models.Host, db *gorm.DB) erro
 	})
 }
 
-func (m *Manager) EnableHost(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) EnableHost(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	return m.sm.Run(TransitionTypeEnableHost, newStateHost(h), &TransitionArgsEnableHost{
 		ctx: ctx,
 		db:  db,
 	})
 }
 
-func (m *Manager) DisableHost(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) DisableHost(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	return m.sm.Run(TransitionTypeDisableHost, newStateHost(h), &TransitionArgsDisableHost{
 		ctx: ctx,
 		db:  db,
@@ -382,7 +391,7 @@ func (m *Manager) GetNextSteps(ctx context.Context, host *models.Host) (models.S
 	return m.instructionApi.GetNextSteps(ctx, host)
 }
 
-func (m *Manager) UpdateInstallProgress(ctx context.Context, h *models.Host, progress *models.HostProgress) error {
+func (m *Manager) UpdateInstallProgress(ctx context.Context, h *common.Host, progress *models.HostProgress) error {
 	previousProgress := h.Progress
 
 	if previousProgress != nil &&
@@ -447,7 +456,7 @@ func (m *Manager) UpdateInstallProgress(ctx context.Context, h *models.Host, pro
 	return err
 }
 
-func (m *Manager) SetBootstrap(ctx context.Context, h *models.Host, isbootstrap bool, db *gorm.DB) error {
+func (m *Manager) SetBootstrap(ctx context.Context, h *common.Host, isbootstrap bool, db *gorm.DB) error {
 	if h.Bootstrap != isbootstrap {
 		err := db.Model(h).Update("bootstrap", isbootstrap).Error
 		if err != nil {
@@ -458,13 +467,13 @@ func (m *Manager) SetBootstrap(ctx context.Context, h *models.Host, isbootstrap 
 	}
 	return nil
 }
-func (m *Manager) UpdateLogsProgress(ctx context.Context, h *models.Host, progress string) error {
+func (m *Manager) UpdateLogsProgress(ctx context.Context, h *common.Host, progress string) error {
 	_, err := hostutil.UpdateLogsProgress(ctx, logutil.FromContext(ctx, m.log), m.db, m.eventsHandler, h.ClusterID, *h.ID,
 		swag.StringValue(h.Status), progress)
 	return err
 }
 
-func (m *Manager) SetUploadLogsAt(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) SetUploadLogsAt(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	err := db.Model(h).Update("logs_collected_at", strfmt.DateTime(time.Now())).Error
 	if err != nil {
 		return errors.Wrapf(err, "failed to set logs_collected_at to host %s", h.ID.String())
@@ -472,7 +481,7 @@ func (m *Manager) SetUploadLogsAt(ctx context.Context, h *models.Host, db *gorm.
 	return nil
 }
 
-func (m *Manager) UpdateConnectivityReport(ctx context.Context, h *models.Host, connectivityReport string) error {
+func (m *Manager) UpdateConnectivityReport(ctx context.Context, h *common.Host, connectivityReport string) error {
 	if h.Connectivity != connectivityReport {
 		err := m.db.Model(h).Update("connectivity", connectivityReport).Error
 		if err != nil {
@@ -482,7 +491,7 @@ func (m *Manager) UpdateConnectivityReport(ctx context.Context, h *models.Host, 
 	return nil
 }
 
-func (m *Manager) UpdateApiVipConnectivityReport(ctx context.Context, h *models.Host, apiVipConnectivityReport string) error {
+func (m *Manager) UpdateApiVipConnectivityReport(ctx context.Context, h *common.Host, apiVipConnectivityReport string) error {
 	if h.APIVipConnectivity != apiVipConnectivityReport {
 		if err := m.db.Model(h).Update("api_vip_connectivity", apiVipConnectivityReport).Error; err != nil {
 			return errors.Wrapf(err, "failed to set api_vip_connectivity to host %s", h.ID.String())
@@ -491,7 +500,7 @@ func (m *Manager) UpdateApiVipConnectivityReport(ctx context.Context, h *models.
 	return nil
 }
 
-func (m *Manager) UpdateRole(ctx context.Context, h *models.Host, role models.HostRole, db *gorm.DB) error {
+func (m *Manager) UpdateRole(ctx context.Context, h *common.Host, role models.HostRole, db *gorm.DB) error {
 	cdb := m.db
 	if db != nil {
 		cdb = db
@@ -504,7 +513,7 @@ func (m *Manager) UpdateRole(ctx context.Context, h *models.Host, role models.Ho
 	}
 }
 
-func (m *Manager) UpdateMachineConfigPoolName(ctx context.Context, db *gorm.DB, h *models.Host, machineConfigPoolName string) error {
+func (m *Manager) UpdateMachineConfigPoolName(ctx context.Context, db *gorm.DB, h *common.Host, machineConfigPoolName string) error {
 	if !hostutil.IsDay2Host(h) {
 		return common.NewApiError(http.StatusBadRequest,
 			errors.Errorf("Host %s must be in day2 to update its machine config pool name to %s",
@@ -526,7 +535,7 @@ func (m *Manager) UpdateMachineConfigPoolName(ctx context.Context, db *gorm.DB, 
 	return cdb.Model(h).Update("machine_config_pool_name", machineConfigPoolName).Error
 }
 
-func (m *Manager) UpdateNTP(ctx context.Context, h *models.Host, ntpSources []*models.NtpSource, db *gorm.DB) error {
+func (m *Manager) UpdateNTP(ctx context.Context, h *common.Host, ntpSources []*models.NtpSource, db *gorm.DB) error {
 	bytes, err := json.Marshal(ntpSources)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to marshal NTP sources for host %s", h.ID.String())
@@ -535,7 +544,7 @@ func (m *Manager) UpdateNTP(ctx context.Context, h *models.Host, ntpSources []*m
 	return db.Model(h).Update("ntp_sources", string(bytes)).Error
 }
 
-func (m *Manager) UpdateImageStatus(ctx context.Context, h *models.Host, newImageStatus *models.ContainerImageAvailability, db *gorm.DB) error {
+func (m *Manager) UpdateImageStatus(ctx context.Context, h *common.Host, newImageStatus *models.ContainerImageAvailability, db *gorm.DB) error {
 	var hostImageStatuses map[string]*models.ContainerImageAvailability = make(map[string]*models.ContainerImageAvailability)
 
 	if h.ImagesStatus != "" {
@@ -579,7 +588,7 @@ func (m *Manager) UpdateImageStatus(ctx context.Context, h *models.Host, newImag
 	return db.Model(h).Update("images_status", string(bytes)).Error
 }
 
-func (m *Manager) UpdateHostname(ctx context.Context, h *models.Host, hostname string, db *gorm.DB) error {
+func (m *Manager) UpdateHostname(ctx context.Context, h *common.Host, hostname string, db *gorm.DB) error {
 	hostStatus := swag.StringValue(h.Status)
 	if !funk.ContainsString(hostStatusesBeforeInstallation[:], hostStatus) {
 		return common.NewApiError(http.StatusBadRequest,
@@ -595,7 +604,7 @@ func (m *Manager) UpdateHostname(ctx context.Context, h *models.Host, hostname s
 	return cdb.Model(h).Update("requested_hostname", hostname).Error
 }
 
-func (m *Manager) UpdateInstallationDisk(ctx context.Context, db *gorm.DB, h *models.Host, installationDiskPath string) error {
+func (m *Manager) UpdateInstallationDisk(ctx context.Context, db *gorm.DB, h *common.Host, installationDiskPath string) error {
 	hostStatus := swag.StringValue(h.Status)
 	if !funk.ContainsString(hostStatusesBeforeInstallation[:], hostStatus) {
 		return common.NewApiError(http.StatusBadRequest,
@@ -627,7 +636,7 @@ func (m *Manager) UpdateInstallationDisk(ctx context.Context, db *gorm.DB, h *mo
 	}).Error
 }
 
-func (m *Manager) CancelInstallation(ctx context.Context, h *models.Host, reason string, db *gorm.DB) *common.ApiErrorResponse {
+func (m *Manager) CancelInstallation(ctx context.Context, h *common.Host, reason string, db *gorm.DB) *common.ApiErrorResponse {
 	eventSeverity := models.EventSeverityInfo
 	eventInfo := fmt.Sprintf("Installation canceled for host %s", hostutil.GetHostnameForMsg(h))
 	shouldAddEvent := true
@@ -652,7 +661,7 @@ func (m *Manager) CancelInstallation(ctx context.Context, h *models.Host, reason
 	return nil
 }
 
-func (m *Manager) IsRequireUserActionReset(h *models.Host) bool {
+func (m *Manager) IsRequireUserActionReset(h *common.Host) bool {
 	if swag.StringValue(h.Status) != models.HostStatusResetting {
 		return false
 	}
@@ -669,7 +678,7 @@ func (m *Manager) IsRequireUserActionReset(h *models.Host) bool {
 	return false
 }
 
-func (m *Manager) ResetHost(ctx context.Context, h *models.Host, reason string, db *gorm.DB) *common.ApiErrorResponse {
+func (m *Manager) ResetHost(ctx context.Context, h *common.Host, reason string, db *gorm.DB) *common.ApiErrorResponse {
 	eventSeverity := models.EventSeverityInfo
 	eventInfo := fmt.Sprintf("Installation reset for host %s", hostutil.GetHostnameForMsg(h))
 	shouldAddEvent := true
@@ -707,7 +716,7 @@ func (m *Manager) ResetHost(ctx context.Context, h *models.Host, reason string, 
 	return nil
 }
 
-func (m *Manager) ResetPendingUserAction(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) ResetPendingUserAction(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	eventSeverity := models.EventSeverityInfo
 	eventInfo := fmt.Sprintf("User action is required in order to complete installation reset for host %s", hostutil.GetHostnameForMsg(h))
 	shouldAddEvent := true
@@ -746,11 +755,11 @@ func (m *Manager) GetStagesByRole(role models.HostRole, isbootstrap bool) []mode
 	}
 }
 
-func (m *Manager) IsInstallable(h *models.Host) bool {
+func (m *Manager) IsInstallable(h *common.Host) bool {
 	return swag.StringValue(h.Status) == models.HostStatusKnown
 }
 
-func (m *Manager) reportInstallationMetrics(ctx context.Context, h *models.Host, previousProgress *models.HostProgressInfo, CurrentStage models.HostStage) {
+func (m *Manager) reportInstallationMetrics(ctx context.Context, h *common.Host, previousProgress *models.HostProgressInfo, CurrentStage models.HostStage) {
 	log := logutil.FromContext(ctx, m.log)
 	//get openshift version from cluster
 	var cluster common.Cluster
@@ -768,10 +777,10 @@ func (m *Manager) reportInstallationMetrics(ctx context.Context, h *models.Host,
 		log.Errorf("host %s in cluster %s has empty installation path", h.ID.String(), h.ClusterID.String())
 	}
 
-	m.metricApi.ReportHostInstallationMetrics(log, cluster.OpenshiftVersion, h.ClusterID, cluster.EmailDomain, boot, h, previousProgress, CurrentStage)
+	m.metricApi.ReportHostInstallationMetrics(log, cluster.OpenshiftVersion, h.ClusterID, cluster.EmailDomain, boot, &h.Host, previousProgress, CurrentStage)
 }
 
-func (m *Manager) ReportValidationFailedMetrics(ctx context.Context, h *models.Host, ocpVersion, emailDomain string) error {
+func (m *Manager) ReportValidationFailedMetrics(ctx context.Context, h *common.Host, ocpVersion, emailDomain string) error {
 	log := logutil.FromContext(ctx, m.log)
 	if h.ValidationsInfo == "" {
 		log.Warnf("Host %s in cluster %s doesn't contain any validations info, cannot report metrics for that host", h.ID, h.ClusterID)
@@ -792,7 +801,7 @@ func (m *Manager) ReportValidationFailedMetrics(ctx context.Context, h *models.H
 	return nil
 }
 
-func (m *Manager) reportValidationStatusChanged(ctx context.Context, vc *validationContext, h *models.Host,
+func (m *Manager) reportValidationStatusChanged(ctx context.Context, vc *validationContext, h *common.Host,
 	newValidationRes, currentValidationRes ValidationsStatus) {
 	for vCategory, vRes := range newValidationRes {
 		for _, v := range vRes {
@@ -833,7 +842,7 @@ func (m *Manager) didValidationChanged(ctx context.Context, newValidationRes, cu
 	return !reflect.DeepEqual(newValidationRes, currentValidationRes)
 }
 
-func (m *Manager) updateValidationsInDB(ctx context.Context, db *gorm.DB, h *models.Host, newValidationRes ValidationsStatus) (*common.Host, error) {
+func (m *Manager) updateValidationsInDB(ctx context.Context, db *gorm.DB, h *common.Host, newValidationRes ValidationsStatus) (*common.Host, error) {
 	b, err := json.Marshal(newValidationRes)
 	if err != nil {
 		return nil, err
@@ -841,7 +850,7 @@ func (m *Manager) updateValidationsInDB(ctx context.Context, db *gorm.DB, h *mod
 	return hostutil.UpdateHost(logutil.FromContext(ctx, m.log), db, h.ClusterID, *h.ID, *h.Status, "validations_info", string(b))
 }
 
-func (m *Manager) AutoAssignRole(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) AutoAssignRole(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	// select role if needed
 	if h.Role == models.HostRoleAutoAssign {
 		return m.autoRoleSelection(ctx, h, db)
@@ -849,7 +858,7 @@ func (m *Manager) AutoAssignRole(ctx context.Context, h *models.Host, db *gorm.D
 	return nil
 }
 
-func (m *Manager) autoRoleSelection(ctx context.Context, h *models.Host, db *gorm.DB) error {
+func (m *Manager) autoRoleSelection(ctx context.Context, h *common.Host, db *gorm.DB) error {
 	log := logutil.FromContext(ctx, m.log)
 	if h.Inventory == "" {
 		return errors.Errorf("host %s from cluster %s don't have hardware info",
@@ -870,7 +879,7 @@ func (m *Manager) autoRoleSelection(ctx context.Context, h *models.Host, db *gor
 		Take(h, "id = ? and cluster_id = ?", h.ID.String(), h.ClusterID.String()).Error
 }
 
-func (m *Manager) selectRole(ctx context.Context, h *models.Host, db *gorm.DB) (models.HostRole, error) {
+func (m *Manager) selectRole(ctx context.Context, h *common.Host, db *gorm.DB) (models.HostRole, error) {
 	var (
 		autoSelectedRole = models.HostRoleWorker
 		log              = logutil.FromContext(ctx, m.log)
@@ -908,7 +917,7 @@ func (m *Manager) selectRole(ctx context.Context, h *models.Host, db *gorm.DB) (
 	return autoSelectedRole, nil
 }
 
-func (m *Manager) IsValidMasterCandidate(h *models.Host, db *gorm.DB, log logrus.FieldLogger) (bool, error) {
+func (m *Manager) IsValidMasterCandidate(h *common.Host, db *gorm.DB, log logrus.FieldLogger) (bool, error) {
 	if h.Role == models.HostRoleWorker {
 		return false, nil
 	}
@@ -940,11 +949,11 @@ func (m *Manager) canBeMaster(conditions map[string]bool) bool {
 	return false
 }
 
-func (m *Manager) GetHostValidDisks(host *models.Host) ([]*models.Disk, error) {
+func (m *Manager) GetHostValidDisks(host *common.Host) ([]*models.Disk, error) {
 	return m.hwValidator.GetHostValidDisks(host)
 }
 
-func (m *Manager) SetDiskSpeed(ctx context.Context, h *models.Host, path string, speedMs int64, exitCode int64, db *gorm.DB) error {
+func (m *Manager) SetDiskSpeed(ctx context.Context, h *common.Host, path string, speedMs int64, exitCode int64, db *gorm.DB) error {
 	log := logutil.FromContext(ctx, m.log)
 	if db == nil {
 		db = m.db
@@ -978,4 +987,15 @@ func (m Manager) PermanentHostsDeletion(olderThan strfmt.DateTime) error {
 		m.log.Debugf("Deleted %s hosts from db", reply.RowsAffected)
 	}
 	return nil
+}
+
+func (m *Manager) GetHostByKubeKey(key types.NamespacedName) (*common.Host, error) {
+	m.log.Infof("XXX: start host GetHostByKubeKey")
+	h, err := common.GetHostFromDBWhere(m.db, common.UseEagerLoading, common.SkipDeletedRecords, "kube_key_name = ? and kube_key_namespace = ?", key.Name, key.Namespace)
+	if err != nil {
+		m.log.Infof("XXX: GetHostByKubeKey got err reading from db: %s", err.Error())
+		return nil, err
+	}
+	m.log.Infof("XXX: GetHostByKubeKey got host from db: id %s c-id %s name %s ns %s", h.ID, h.ClusterID, h.KubeKeyName, h.KubeKeyNamespace)
+	return h, nil
 }

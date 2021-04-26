@@ -3,6 +3,7 @@ package hostcommands
 import (
 	"context"
 	"fmt"
+	"github.com/openshift/assisted-service/internal/common"
 	"time"
 
 	"github.com/go-openapi/strfmt"
@@ -116,7 +117,7 @@ func (i *InstructionManager) GetNextSteps(ctx context.Context, host *models.Host
 
 	returnSteps := models.Steps{}
 	stateToSteps := i.installingClusterStateToSteps
-	if hostutil.IsDay2Host(host) {
+	if hostutil.IsDay2Host(&common.Host{Host: *host}) {
 		stateToSteps = i.addHostsClusterToSteps
 	}
 

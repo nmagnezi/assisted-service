@@ -197,7 +197,11 @@ func (m *Manager) DeregisterCluster(ctx context.Context, c *common.Cluster) erro
 
 	var metricsErr error
 	for _, h := range c.Hosts {
-		if err := m.hostAPI.ReportValidationFailedMetrics(ctx, h, c.OpenshiftVersion, c.EmailDomain); err != nil {
+		chost, err := common.GetHostFromDB(m.db, h.ClusterID.String(), h.ID.String())
+		if err != nil {
+			return err
+		}
+		if err := m.hostAPI.ReportValidationFailedMetrics(ctx, chost, c.OpenshiftVersion, c.EmailDomain); err != nil {
 			m.log.WithError(err).Errorf("Failed to report metrics for failed validations on host %s in cluster %s", h.ID, c.ID)
 			metricsErr = multierror.Append(metricsErr, err)
 		}
@@ -771,7 +775,11 @@ func (m *Manager) CreateTarredClusterLogs(ctx context.Context, c *common.Cluster
 					if hostObject.Bootstrap {
 						role = string(models.HostRoleBootstrap)
 					}
-					tarredFilename = fmt.Sprintf("%s_%s_%s.tar.gz", sanitize.Name(c.Name), role, sanitize.Name(hostutil.GetHostnameForMsg(hostObject)))
+					chost, err := common.GetHostFromDB(m.db, hostObject.ClusterID.String(), hostObject.ID.String())
+					if err != nil {
+						return "", common.NewApiError(http.StatusInternalServerError, err)
+					}
+					tarredFilename = fmt.Sprintf("%s_%s_%s.tar.gz", sanitize.Name(c.Name), role, sanitize.Name(hostutil.GetHostnameForMsg(chost)))
 				}
 			} else {
 				tarredFilename = fmt.Sprintf("%s_%s", fileNameSplit[len(fileNameSplit)-2], fileNameSplit[len(fileNameSplit)-1])

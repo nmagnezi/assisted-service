@@ -528,7 +528,7 @@ func setPendingUserResetIfNeeded(ctx context.Context, log logrus.FieldLogger, db
 
 func isPendingUserResetRequired(hostAPI host.API, c *common.Cluster) bool {
 	for _, h := range c.Hosts {
-		if hostAPI.IsRequireUserActionReset(h) {
+		if hostAPI.IsRequireUserActionReset(&common.Host{Host: *h}) {
 			return true
 		}
 	}
@@ -548,7 +548,11 @@ func setPendingUserReset(ctx context.Context, c *common.Cluster, db *gorm.DB, ho
 	}()
 
 	for _, h := range c.Hosts {
-		if err := hostAPI.ResetPendingUserAction(ctx, h, tx); err != nil {
+		chost, err := common.GetHostFromDB(db, h.ClusterID.String(), h.ID.String())
+		if err != nil {
+			return err
+		}
+		if err := hostAPI.ResetPendingUserAction(ctx, chost, tx); err != nil {
 			return err
 		}
 	}

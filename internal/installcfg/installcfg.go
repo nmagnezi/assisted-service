@@ -270,20 +270,20 @@ func setBMPlatformInstallconfig(log logrus.FieldLogger, cluster *common.Cluster,
 		if sortedHosts[i].Role != sortedHosts[j].Role {
 			return sortedHosts[i].Role == models.HostRoleMaster
 		}
-		return hostutil.GetHostnameForMsg(sortedHosts[i]) < hostutil.GetHostnameForMsg(sortedHosts[j])
+		return hostutil.GetHostnameForMsg(&common.Host{Host: *sortedHosts[i]}) < hostutil.GetHostnameForMsg(&common.Host{Host: *sortedHosts[j]})
 	})
 	for _, host := range sortedHosts {
 		if swag.StringValue(host.Status) == models.HostStatusDisabled {
 			continue
 		}
-		log.Infof("host name is %s", hostutil.GetHostnameForMsg(host))
+		log.Infof("host name is %s", hostutil.GetHostnameForMsg(&common.Host{Host: *host}))
 		hosts[yamlHostIdx].Name = getBMHName(host, &masterIdx, &workerIdx)
 		hosts[yamlHostIdx].Role = string(host.Role)
 
 		var inventory models.Inventory
 		err := json.Unmarshal([]byte(host.Inventory), &inventory)
 		if err != nil {
-			log.Warnf("Failed to unmarshall host %s inventory", hostutil.GetHostnameForMsg(host))
+			log.Warnf("Failed to unmarshall host %s inventory", hostutil.GetHostnameForMsg(&common.Host{Host: *host}))
 			return err
 		}
 		hosts[yamlHostIdx].BootMACAddress = inventory.Interfaces[0].MacAddress
@@ -357,7 +357,7 @@ func getInstallConfig(log logrus.FieldLogger, cluster *common.Cluster, addRhCa b
 		if common.IsSingleNodeCluster(cluster) {
 			bootstrap := common.GetBootstrapHost(cluster)
 			if bootstrap != nil {
-				cfg.BootstrapInPlace = bootstrapInPlace{InstallationDisk: hostutil.GetHostInstallationPath(bootstrap)}
+				cfg.BootstrapInPlace = bootstrapInPlace{InstallationDisk: hostutil.GetHostInstallationPath(&common.Host{Host: *bootstrap})}
 			}
 		}
 

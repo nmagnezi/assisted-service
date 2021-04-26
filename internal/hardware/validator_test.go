@@ -79,9 +79,9 @@ var _ = Describe("Disk eligibility", func() {
 var _ = Describe("hardware_validator", func() {
 	var (
 		hwvalidator   Validator
-		host1         *models.Host
-		host2         *models.Host
-		host3         *models.Host
+		host1         *common.Host
+		host2         *common.Host
+		host3         *common.Host
 		inventory     *models.Inventory
 		cluster       *common.Cluster
 		validDiskSize = int64(128849018880)
@@ -95,9 +95,9 @@ var _ = Describe("hardware_validator", func() {
 		id2 := strfmt.UUID(uuid.New().String())
 		id3 := strfmt.UUID(uuid.New().String())
 		clusterID := strfmt.UUID(uuid.New().String())
-		host1 = &models.Host{ID: &id1, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname1"}
-		host2 = &models.Host{ID: &id2, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname2"}
-		host3 = &models.Host{ID: &id3, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname3"}
+		host1 = &common.Host{Host: models.Host{ID: &id1, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname1"}}
+		host2 = &common.Host{Host: models.Host{ID: &id2, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname2"}}
+		host3 = &common.Host{Host: models.Host{ID: &id3, ClusterID: clusterID, Status: &status, RequestedHostname: "reqhostname3"}}
 		inventory = &models.Inventory{
 			CPU:    &models.CPU{Count: 16},
 			Memory: &models.Memory{PhysicalBytes: int64(32 * units.GiB), UsableBytes: int64(32 * units.GiB)},
@@ -117,9 +117,9 @@ var _ = Describe("hardware_validator", func() {
 			ID:                 &clusterID,
 			MachineNetworkCidr: "1.2.3.0/24",
 		}}
-		cluster.Hosts = append(cluster.Hosts, host1)
-		cluster.Hosts = append(cluster.Hosts, host2)
-		cluster.Hosts = append(cluster.Hosts, host3)
+		cluster.Hosts = append(cluster.Hosts, &host1.Host)
+		cluster.Hosts = append(cluster.Hosts, &host2.Host)
+		cluster.Hosts = append(cluster.Hosts, &host3.Host)
 	})
 
 	It("validate_disk_list_return_order", func() {
@@ -189,7 +189,7 @@ var _ = Describe("Cluster host requirements", func() {
 		cfg         ValidatorCfg
 		hwvalidator Validator
 		cluster     *common.Cluster
-		host        *models.Host
+		host        *common.Host
 
 		ctrl          *gomock.Controller
 		operatorsMock *operators.MockAPI
@@ -284,8 +284,7 @@ var _ = Describe("Cluster host requirements", func() {
 	It("should contain correct default requirements for master host", func() {
 		role := models.HostRoleMaster
 		id1 := strfmt.UUID(uuid.New().String())
-		host = &models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}
-
+		host = &common.Host{Host: models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}}
 		operatorsMock.EXPECT().GetRequirementsBreakdownForHostInCluster(gomock.Any(), gomock.Eq(cluster), gomock.Eq(host)).Return(operatorRequirements, nil)
 
 		result, err := hwvalidator.GetClusterHostRequirements(context.TODO(), cluster, host)
@@ -309,7 +308,7 @@ var _ = Describe("Cluster host requirements", func() {
 	It("should contain correct default requirements for worker host", func() {
 		role := models.HostRoleWorker
 		id1 := strfmt.UUID(uuid.New().String())
-		host = &models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}
+		host = &common.Host{Host: models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}}
 
 		operatorsMock.EXPECT().GetRequirementsBreakdownForHostInCluster(gomock.Any(), gomock.Eq(cluster), gomock.Eq(host)).Return(operatorRequirements, nil)
 
@@ -334,7 +333,7 @@ var _ = Describe("Cluster host requirements", func() {
 	It("should fail providing on operator API error", func() {
 		role := models.HostRoleWorker
 		id1 := strfmt.UUID(uuid.New().String())
-		host = &models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}
+		host = &common.Host{Host: models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}}
 
 		failure := errors.New("boom")
 		operatorsMock.EXPECT().GetRequirementsBreakdownForHostInCluster(gomock.Any(), gomock.Eq(cluster), gomock.Eq(host)).Return(nil, failure)
@@ -349,7 +348,7 @@ var _ = Describe("Cluster host requirements", func() {
 		func(role models.HostRole, expectedOcpRequirements models.ClusterHostRequirementsDetails) {
 
 			id1 := strfmt.UUID(uuid.New().String())
-			host = &models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}
+			host = &common.Host{Host: models.Host{ID: &id1, ClusterID: *cluster.ID, Role: role}}
 			cluster.OpenshiftVersion = "4.7"
 
 			operatorsMock.EXPECT().GetRequirementsBreakdownForHostInCluster(gomock.Any(), gomock.Eq(cluster), gomock.Eq(host)).Return(operatorRequirements, nil)

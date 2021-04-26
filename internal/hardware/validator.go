@@ -19,10 +19,10 @@ import (
 
 //go:generate mockgen -source=validator.go -package=hardware -destination=mock_validator.go
 type Validator interface {
-	GetHostValidDisks(host *models.Host) ([]*models.Disk, error)
+	GetHostValidDisks(host *common.Host) ([]*models.Disk, error)
 	GetHostRequirements() *models.VersionedHostRequirements
-	GetHostInstallationPath(host *models.Host) string
-	GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *models.Host) (*models.ClusterHostRequirements, error)
+	GetHostInstallationPath(host *common.Host) string
+	GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *common.Host) (*models.ClusterHostRequirements, error)
 	DiskIsEligible(disk *models.Disk) []string
 	ListEligibleDisks(inventory *models.Inventory) []*models.Disk
 	GetInstallationDiskSpeedThresholdMs() int64
@@ -64,11 +64,11 @@ func DiskEligibilityInitialized(disk *models.Disk) bool {
 	return disk.InstallationEligibility.Eligible || len(disk.InstallationEligibility.NotEligibleReasons) != 0
 }
 
-func (v *validator) GetHostInstallationPath(host *models.Host) string {
+func (v *validator) GetHostInstallationPath(host *common.Host) string {
 	return hostutil.GetHostInstallationPath(host)
 }
 
-func (v *validator) GetHostValidDisks(host *models.Host) ([]*models.Disk, error) {
+func (v *validator) GetHostValidDisks(host *common.Host) ([]*models.Disk, error) {
 	var inventory models.Inventory
 	if err := json.Unmarshal([]byte(host.Inventory), &inventory); err != nil {
 		return nil, err
@@ -145,8 +145,8 @@ func (v *validator) GetHostRequirements() *models.VersionedHostRequirements {
 	}
 }
 
-func (v *validator) GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *models.Host) (*models.ClusterHostRequirements, error) {
-	operatorsRequirements, err := v.operatorsAPI.GetRequirementsBreakdownForHostInCluster(ctx, cluster, host)
+func (v *validator) GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *common.Host) (*models.ClusterHostRequirements, error) {
+	operatorsRequirements, err := v.operatorsAPI.GetRequirementsBreakdownForHostInCluster(ctx, cluster, &host.Host)
 	if err != nil {
 		return nil, err
 	}

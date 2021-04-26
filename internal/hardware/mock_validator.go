@@ -36,7 +36,7 @@ func (m *MockValidator) EXPECT() *MockValidatorMockRecorder {
 }
 
 // GetHostValidDisks mocks base method
-func (m *MockValidator) GetHostValidDisks(host *models.Host) ([]*models.Disk, error) {
+func (m *MockValidator) GetHostValidDisks(host *common.Host) ([]*models.Disk, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHostValidDisks", host)
 	ret0, _ := ret[0].([]*models.Disk)
@@ -65,7 +65,7 @@ func (mr *MockValidatorMockRecorder) GetHostRequirements() *gomock.Call {
 }
 
 // GetHostInstallationPath mocks base method
-func (m *MockValidator) GetHostInstallationPath(host *models.Host) string {
+func (m *MockValidator) GetHostInstallationPath(host *common.Host) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHostInstallationPath", host)
 	ret0, _ := ret[0].(string)
@@ -79,7 +79,7 @@ func (mr *MockValidatorMockRecorder) GetHostInstallationPath(host interface{}) *
 }
 
 // GetClusterHostRequirements mocks base method
-func (m *MockValidator) GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *models.Host) (*models.ClusterHostRequirements, error) {
+func (m *MockValidator) GetClusterHostRequirements(ctx context.Context, cluster *common.Cluster, host *common.Host) (*models.ClusterHostRequirements, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetClusterHostRequirements", ctx, cluster, host)
 	ret0, _ := ret[0].(*models.ClusterHostRequirements)

@@ -49,7 +49,7 @@ func (v ValidationStatus) String() string {
 }
 
 type validationContext struct {
-	host                    *models.Host
+	host                    *common.Host
 	cluster                 *common.Cluster
 	inventory               *models.Inventory
 	db                      *gorm.DB
@@ -88,8 +88,8 @@ func (c *validationContext) loadInventory() error {
 	return nil
 }
 
-func (v *validator) getBootDeviceInfo(host *models.Host) (*models.DiskInfo, error) {
-	bootDevice, err := hardware.GetBootDevice(v.log, v.hwValidator, host)
+func (v *validator) getBootDeviceInfo(host *common.Host) (*models.DiskInfo, error) {
+	bootDevice, err := hardware.GetBootDevice(v.log, v.hwValidator, &host.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (c *validationContext) loadClusterHostRequirements(hwValidator hardware.Val
 	return err
 }
 
-func newValidationContext(host *models.Host, db *gorm.DB, hwValidator hardware.Validator) (*validationContext, error) {
+func newValidationContext(host *common.Host, db *gorm.DB, hwValidator hardware.Validator) (*validationContext, error) {
 	ret := &validationContext{
 		host: host,
 		db:   db,
@@ -349,7 +349,7 @@ func (v *validator) belongsToMachineCidr(c *validationContext) ValidationStatus 
 	if c.inventory == nil || c.cluster.MachineNetworkCidr == "" {
 		return ValidationPending
 	}
-	return boolValue(network.IsHostInMachineNetCidr(v.log, c.cluster, c.host))
+	return boolValue(network.IsHostInMachineNetCidr(v.log, c.cluster, &c.host.Host))
 }
 
 func (v *validator) printBelongsToMachineCidr(c *validationContext, status ValidationStatus) string {
@@ -368,7 +368,7 @@ func (v *validator) printBelongsToMachineCidr(c *validationContext, status Valid
 	}
 }
 
-func getRealHostname(host *models.Host, inventory *models.Inventory) string {
+func getRealHostname(host *common.Host, inventory *models.Inventory) string {
 	if host.RequestedHostname != "" {
 		return host.RequestedHostname
 	}
@@ -388,7 +388,7 @@ func (v *validator) isHostnameUnique(c *validationContext) ValidationStatus {
 				// It is not our hostname
 				continue
 			}
-			if realHostname == getRealHostname(h, &otherInventory) {
+			if realHostname == getRealHostname(&common.Host{Host: *h}, &otherInventory) {
 				return ValidationFailure
 			}
 		}
@@ -596,7 +596,7 @@ func (v *validator) printImageAvailability(c *validationContext, status Validati
 	}
 }
 
-func (v *validator) getFailedImagesNames(host *models.Host) ([]string, error) {
+func (v *validator) getFailedImagesNames(host *common.Host) ([]string, error) {
 	var imageStatuses map[string]*models.ContainerImageAvailability
 
 	if host.ImagesStatus == "" {

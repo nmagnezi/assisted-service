@@ -2,6 +2,7 @@ package host
 
 import (
 	"context"
+	"github.com/openshift/assisted-service/internal/common"
 
 	"github.com/go-openapi/swag"
 	"github.com/openshift/assisted-service/models"
@@ -47,7 +48,7 @@ func (m *Manager) HostMonitoring() {
 		models.HostStatusError,     // for limited time, until log collection finished or timed-out
 	}
 	for {
-		hosts := make([]*models.Host, 0, limit)
+		hosts := make([]*common.Host, 0, limit)
 		if err := m.db.Where("status IN (?)", monitorStates).Offset(offset).Limit(limit).
 			Order("cluster_id, id").Find(&hosts).Error; err != nil {
 			log.WithError(err).Errorf("failed to get hosts")
@@ -61,7 +62,7 @@ func (m *Manager) HostMonitoring() {
 				m.log.Debugf("Not a leader, exiting HostMonitoring")
 				return
 			}
-			if !m.SkipMonitoring(host) {
+			if !m.SkipMonitoring(&host.Host) {
 				if err := m.RefreshStatus(ctx, host, m.db); err != nil {
 					log.WithError(err).Errorf("failed to refresh host %s state", *host.ID)
 				}

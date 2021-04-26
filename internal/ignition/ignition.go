@@ -1061,7 +1061,8 @@ func writeHostFiles(hosts []*models.Host, baseFile string, workDir string) error
 				return err
 			}
 
-			hostname, err := hostutil.GetCurrentHostName(host)
+
+			hostname, err := hostutil.GetCurrentHostName(&common.Host{Host: *host})
 			if err != nil {
 				return errors.Wrapf(err, "failed to get hostname for host %s", host.ID)
 			}
@@ -1212,7 +1213,7 @@ func SetHostnameForNodeIgnition(ignition []byte, host *models.Host) ([]byte, err
 		return nil, errors.Errorf("error parsing ignition: %v", err)
 	}
 
-	hostname, err := hostutil.GetCurrentHostName(host)
+	hostname, err := hostutil.GetCurrentHostName(&common.Host{Host: *host})
 	if err != nil {
 		return nil, errors.Errorf("failed to get hostname for host %s", host.ID)
 	}

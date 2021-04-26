@@ -66,7 +66,7 @@ var _ = Describe("RegisterHost", func() {
 	})
 
 	It("register_new", func() {
-		Expect(hapi.RegisterHost(ctx, &models.Host{ID: &hostId, ClusterID: clusterId, DiscoveryAgentVersion: "v1.0.1"}, db)).ShouldNot(HaveOccurred())
+		Expect(hapi.RegisterHost(ctx, &common.Host{Host: models.Host{ID: &hostId, ClusterID: clusterId, DiscoveryAgentVersion: "v1.0.1"}}, db)).ShouldNot(HaveOccurred())
 		h := hostutil.GetHostFromDB(hostId, clusterId, db)
 		Expect(swag.StringValue(h.Status)).Should(Equal(models.HostStatusDiscovering))
 		Expect(h.DiscoveryAgentVersion).To(Equal("v1.0.1"))
@@ -126,10 +126,12 @@ var _ = Describe("RegisterHost", func() {
 					mockEvents.EXPECT().AddEvent(gomock.Any(), clusterId, &hostId, t.expectedEventStatus, fmt.Sprintf(t.expectedEventInfo, hostId.String()), gomock.Any())
 				}
 
-				err := hapi.RegisterHost(ctx, &models.Host{
-					ID:        &hostId,
-					ClusterID: clusterId,
-					Status:    swag.String(t.srcState),
+				err := hapi.RegisterHost(ctx, &common.Host{
+					Host: models.Host{
+						ID:        &hostId,
+						ClusterID: clusterId,
+						Status:    swag.String(t.srcState),
+					},
 				},
 					db)
 
@@ -162,12 +164,13 @@ var _ = Describe("RegisterHost", func() {
 			Inventory: defaultHwInfo,
 			Status:    swag.String(models.HostStatusDisabled),
 		}).Error).ShouldNot(HaveOccurred())
-
-		Expect(hapi.RegisterHost(ctx, &models.Host{
-			ID:                    &hostId,
-			ClusterID:             clusterId,
-			Status:                swag.String(models.HostStatusDisabled),
-			DiscoveryAgentVersion: "v2.0.5",
+		Expect(hapi.RegisterHost(ctx, &common.Host{
+			Host: models.Host{
+				ID:                    &hostId,
+				ClusterID:             clusterId,
+				Status:                swag.String(models.HostStatusDisabled),
+				DiscoveryAgentVersion: "v2.0.5",
+			},
 		},
 			db)).ShouldNot(HaveOccurred())
 	})
@@ -181,11 +184,13 @@ var _ = Describe("RegisterHost", func() {
 			Status:    swag.String(models.HostStatusError),
 		}).Error).ShouldNot(HaveOccurred())
 
-		Expect(hapi.RegisterHost(ctx, &models.Host{
-			ID:                    &hostId,
-			ClusterID:             clusterId,
-			Status:                swag.String(models.HostStatusError),
-			DiscoveryAgentVersion: "v2.0.5",
+		Expect(hapi.RegisterHost(ctx, &common.Host{
+			Host: models.Host{
+				ID:                    &hostId,
+				ClusterID:             clusterId,
+				Status:                swag.String(models.HostStatusError),
+				DiscoveryAgentVersion: "v2.0.5",
+			},
 		},
 			db)).ShouldNot(HaveOccurred())
 	})
@@ -252,11 +257,13 @@ var _ = Describe("RegisterHost", func() {
 						gomock.Any())
 				}
 
-				Expect(hapi.RegisterHost(ctx, &models.Host{
-					ID:                    &hostId,
-					ClusterID:             clusterId,
-					Status:                swag.String(t.srcState),
-					DiscoveryAgentVersion: discoveryAgentVersion,
+				Expect(hapi.RegisterHost(ctx, &common.Host{
+					Host: models.Host{
+						ID:                    &hostId,
+						ClusterID:             clusterId,
+						Status:                swag.String(t.srcState),
+						DiscoveryAgentVersion: discoveryAgentVersion,
+					},
 				},
 					db)).ShouldNot(HaveOccurred())
 			})
@@ -287,10 +294,12 @@ var _ = Describe("RegisterHost", func() {
 					Status:    swag.String(t.srcState),
 				}).Error).ShouldNot(HaveOccurred())
 
-				Expect(hapi.RegisterHost(ctx, &models.Host{
-					ID:        &hostId,
-					ClusterID: clusterId,
-					Status:    swag.String(t.srcState),
+				Expect(hapi.RegisterHost(ctx, &common.Host{
+					Host: models.Host{
+						ID:        &hostId,
+						ClusterID: clusterId,
+						Status:    swag.String(t.srcState),
+					},
 				},
 					db)).Should(HaveOccurred())
 
@@ -401,12 +410,14 @@ var _ = Describe("RegisterHost", func() {
 						gomock.Any())
 				}
 
-				Expect(hapi.RegisterHost(ctx, &models.Host{
-					ID:        &hostId,
-					ClusterID: clusterId,
-					Status:    swag.String(t.srcState),
+				Expect(hapi.RegisterHost(ctx, &common.Host{
+					Host: models.Host{
+						ID:        &hostId,
+						ClusterID: clusterId,
+						Status:    swag.String(t.srcState),
+					},
 				},
-					db)).ShouldNot(HaveOccurred())
+				db)).ShouldNot(HaveOccurred())
 
 				h := hostutil.GetHostFromDB(hostId, clusterId, db)
 				Expect(swag.StringValue(h.Status)).Should(Equal(t.dstState))
@@ -429,7 +440,7 @@ var _ = Describe("HostInstallationFailed", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		ctrl              *gomock.Controller
 		mockMetric        *metrics.MockAPI
 		mockEvents        *events.MockHandler
@@ -473,7 +484,7 @@ var _ = Describe("RegisterInstalledOCPHost", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		ctrl              *gomock.Controller
 		mockMetric        *metrics.MockAPI
 		mockEvents        *events.MockHandler
@@ -511,7 +522,7 @@ var _ = Describe("Cancel host installation", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		ctrl              *gomock.Controller
 		mockEventsHandler *events.MockHandler
 	)
@@ -603,7 +614,7 @@ var _ = Describe("Reset host", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		ctrl              *gomock.Controller
 		mockEventsHandler *events.MockHandler
 	)
@@ -696,7 +707,7 @@ var _ = Describe("Install", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		cluster           common.Cluster
 		mockHwValidator   *hardware.MockValidator
 		dbName            string
@@ -865,7 +876,7 @@ var _ = Describe("Disable", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -998,7 +1009,7 @@ var _ = Describe("Enable", func() {
 		ctrl              *gomock.Controller
 		mockEvents        *events.MockHandler
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		dbName            string
 	)
 
@@ -1219,7 +1230,7 @@ var _ = Describe("Refresh Host", func() {
 		hapi              API
 		db                *gorm.DB
 		hostId, clusterId strfmt.UUID
-		host              models.Host
+		host              common.Host
 		cluster           common.Cluster
 		mockEvents        *events.MockHandler
 		ctrl              *gomock.Controller

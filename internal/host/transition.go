@@ -66,7 +66,7 @@ func (th *transitionHandler) PostRegisterHost(sw stateswitch.StateSwitch, args s
 			swag.StringValue(hostParam.Status), statusInfoDiscovering, hostParam.Progress.CurrentStage, "", "", extra...); err != nil {
 			return err
 		} else {
-			sHost.host = &dbHost.Host
+			sHost.host = dbHost
 			return nil
 		}
 	}
@@ -358,7 +358,7 @@ func (th *transitionHandler) updateTransitionHost(ctx context.Context, log logru
 		swag.StringValue(state.host.Status), statusInfo, extra...); err != nil {
 		return err
 	} else {
-		state.host = &host.Host
+		state.host.Host = host.Host
 		return nil
 	}
 }
@@ -574,7 +574,7 @@ func (th *transitionHandler) HostNotResponsiveWhilePreparingInstallation(sw stat
 	if !ok {
 		return false, errors.New("HostNotResponsiveWhilePreparingInstallation incompatible type of StateSwitch")
 	}
-	return !hostIsResponsive(sHost.host), nil
+	return !hostIsResponsive(&sHost.host.Host), nil
 }
 
 func (th *transitionHandler) HostNotResponsiveWhileInstallation(sw stateswitch.StateSwitch, args stateswitch.TransitionArgs) (bool, error) {
@@ -582,7 +582,7 @@ func (th *transitionHandler) HostNotResponsiveWhileInstallation(sw stateswitch.S
 	if !ok {
 		return false, errors.New("HostNotResponsiveWhileInstallation incompatible type of StateSwitch")
 	}
-	return funk.Contains(disconnectionValidationStages, sHost.host.Progress.CurrentStage) && !hostIsResponsive(sHost.host), nil
+	return funk.Contains(disconnectionValidationStages, sHost.host.Progress.CurrentStage) && !hostIsResponsive(&sHost.host.Host), nil
 }
 
 func getFailedValidations(params *TransitionArgsRefreshHost) []string {

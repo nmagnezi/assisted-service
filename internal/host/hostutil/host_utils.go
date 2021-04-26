@@ -17,7 +17,7 @@ const (
 	MaxHostnameLength = 253
 )
 
-func GetCurrentHostName(host *models.Host) (string, error) {
+func GetCurrentHostName(host *common.Host) (string, error) {
 	var inventory models.Inventory
 	if host.RequestedHostname != "" {
 		return host.RequestedHostname, nil
@@ -29,7 +29,7 @@ func GetCurrentHostName(host *models.Host) (string, error) {
 	return inventory.Hostname, nil
 }
 
-func GetHostnameForMsg(host *models.Host) string {
+func GetHostnameForMsg(host *common.Host) string {
 	hostName, err := GetCurrentHostName(host)
 	// An error here probably indicates that the agent didn't send inventory yet, fall back to UUID
 	if err != nil || hostName == "" {
@@ -123,7 +123,7 @@ func UnmarshalInventory(inventoryStr string) (*models.Inventory, error) {
 	return &inventory, nil
 }
 
-func GetHostInstallationPath(host *models.Host) string {
+func GetHostInstallationPath(host *common.Host) string {
 	if host.InstallationDiskID != "" {
 		return host.InstallationDiskID
 	}
@@ -131,7 +131,7 @@ func GetHostInstallationPath(host *models.Host) string {
 	return host.InstallationDiskPath
 }
 
-func GetHostInstallationDisk(host *models.Host) (*models.Disk, error) {
+func GetHostInstallationDisk(host *common.Host) (*models.Disk, error) {
 	inventory, err := UnmarshalInventory(host.Inventory)
 
 	if err != nil {
@@ -186,6 +186,6 @@ func ValidateInstallerArgs(args []string) error {
 	return nil
 }
 
-func IsDay2Host(h *models.Host) bool {
+func IsDay2Host(h *common.Host) bool {
 	return swag.StringValue(h.Kind) == models.HostKindAddToExistingClusterHost
 }
