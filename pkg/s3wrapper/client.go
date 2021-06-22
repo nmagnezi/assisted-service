@@ -530,15 +530,15 @@ func (c *S3Client) uploadISOs(ctx context.Context, isoObjectName, minimalIsoObje
 		log.Infof("Successfully uploaded object %s", isoObjectName)
 	}
 
-	if !minimalExists {
-		rootFSURL, err := c.versionsHandler.GetRHCOSRootFS(openshiftVersion)
-		if err != nil {
-			return err
-		}
-		if err = CreateAndUploadMinimalIso(ctx, log, baseIsoPath, minimalIsoObject, rootFSURL, c, c.isoEditorFactory); err != nil {
-			return err
-		}
-	}
+	//if !minimalExists {
+	//	rootFSURL, err := c.versionsHandler.GetRHCOSRootFS(openshiftVersion)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if err = CreateAndUploadMinimalIso(ctx, log, baseIsoPath, minimalIsoObject, rootFSURL, c, c.isoEditorFactory); err != nil {
+	//		return err
+	//	}
+	//}
 
 	return nil
 }

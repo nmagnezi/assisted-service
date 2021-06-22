@@ -365,16 +365,16 @@ func (f *FSClient) UploadISOs(ctx context.Context, openshiftVersion string, have
 		log.Infof("Successfully uploaded object %s", baseIsoObject)
 	}
 
-	isoFilePath := filepath.Join(f.basedir, baseIsoObject)
-	if !minimalExists {
-		rootFSURL, err := f.versionsHandler.GetRHCOSRootFS(openshiftVersion)
-		if err != nil {
-			return err
-		}
-		if err = CreateAndUploadMinimalIso(ctx, log, isoFilePath, minimalIsoObject, rootFSURL, f, f.isoEditorFactory); err != nil {
-			return err
-		}
-	}
+	//isoFilePath := filepath.Join(f.basedir, baseIsoObject)
+	//if !minimalExists {
+	//	rootFSURL, err := f.versionsHandler.GetRHCOSRootFS(openshiftVersion)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if err = CreateAndUploadMinimalIso(ctx, log, isoFilePath, minimalIsoObject, rootFSURL, f, f.isoEditorFactory); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
